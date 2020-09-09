@@ -1,0 +1,31 @@
+version: 1
+formatters:
+  standard:
+    format: '%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(threadName)-10s - {%(module)s} - [%(funcName)s] - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+handlers:
+  console:
+    level: DEBUG
+    class: logging.StreamHandler
+    formatter: standard
+    stream: ext://sys.stdout
+  file:
+    level: ERROR
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: 'error.log'
+    maxBytes: 2048
+    backupCount: 7
+    level: INFO
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: 'error.log'
+    maxBytes: 2048
+    backupCount: 7
+
+loggers:
+  default:
+    level: DEBUG
+    handlers: [file]
+    propagate: no
+disable_existing_loggers: False
