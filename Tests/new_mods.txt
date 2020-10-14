@@ -1,0 +1,13 @@
+#### I2C protocol ####
+
+apt-get install i2c-tools
+
+apt-get install python-smbus
+
+# After installing the extras connect and run 
+
+i2cdetect -y 1
+
+#### SPI PROTOCOL ####
+
+

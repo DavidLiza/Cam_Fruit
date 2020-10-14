@@ -1,0 +1,16 @@
+
+For all platforms (Raspberry Pi and Beaglebone Black) make sure you have the following dependencies:
+
+sudo apt-get update
+sudo apt-get install python3-imaging python3-numpy
+
+For a Raspberry Pi make sure you have the RPi.GPIO library by executing:
+
+sudo pip3 install RPi.GPIO
+
+For a BeagleBone Black make sure you have the Adafruit_BBIO library by executing:
+sudo pip3 install Adafruit_BBIO
+
+
+Set up the code : https://github.com/firnsy/BHack_Python_ILI9225
+sudo python3 setup.py install
