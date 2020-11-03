@@ -1,0 +1,15 @@
+# Not using OPENCV.
+
+# Default
+fswebcam image.jpg
+
+#Specify resolution
+fswebcam -r 1280x720 image2.jpg
+
+
+#Specify no banner
+#Now add the --no-banner flag:
+
+fswebcam -r 1280x720 --no-banner image3.jpg
+
+# https://www.raspberrypi.org/documentation/usage/webcams/README.md

@@ -21,15 +21,6 @@ PIN_BLUE  = 16
 PIN_ON     =  True
 PIN_OFF    =  False
 
-def SALUTE_QR(Com_Name): #espeak -ves-la+f2 -g8 -s190 'Holiwis' --stdout |aplay 2>/dev/null
-   cmd_beg= 'espeak -ves-la+f5 -g12 -s200 ' 
-   cmd_end= ' --stdout |aplay 2>/dev/null' # To dump the std errors to /dev/null
-   count =str(Com_Name)
-   #Replacing ' ' with '_' to identify words in the text entered
-   count = count.replace(' ', '_')
-   #Calls the Espeak TTS Engine to read aloud a Text
-   call([cmd_beg+count+cmd_end], shell=True , stdout =None)
-
 def GPIO_CONF(LOGIC_ON='HIGH'):
     global PIN_ON
     global PIN_OFF
@@ -46,7 +37,7 @@ def GPIO_CONF(LOGIC_ON='HIGH'):
     GPIO.setup (PIN_BUZZER, GPIO.OUT)
     GPIO.setup (PIN_BLUE  , GPIO.OUT)
 
-    GPIO.output(PIN_BLUE , PIN_ON )
+    GPIO.output(PIN_BLUE , PIN_OFF)
     GPIO.output(PIN_RED  , PIN_OFF)
     GPIO.output(PIN_GREEN, PIN_OFF)
 
@@ -126,13 +117,9 @@ def main():
     GPIO_CONF('HIGH')
     GPIO_INIT()
     GPIO_INIT()
-    SALUTE_QR("Hola terricolas")
-    SALUTE_QR("QUIZA AHORA SI PODAMOS REPRODUCIR ESTO!")
     print("** DONE WITH THE PROCESS **")
     GPIO.cleanup()
 
-#__GPIO_CONF()
-#GPIO_INIT()
 
 if __name__ == '__main__':
     main()

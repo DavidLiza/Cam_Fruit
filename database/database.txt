@@ -1,0 +1,55 @@
+# Preguntar si las canastilals van a tener un ID unico
+# o si se hace por medio  de un nombre dado por el usuario 
+
+-- Crear Tablas
+
+CREATE TABLE canastillas (
+    code_id   INTEGER  PRIMARY KEY,
+    name      TEXT NOT NULL,
+    peso      FLOAT NOT NULL,
+    img_path  TEXT
+);
+
+CREATE TABLE estibas (
+    code_id   INTEGER  PRIMARY KEY,
+    name      TEXT NOT NULL,
+    peso      FLOAT NOT NULL,
+    img_path  TEXT
+);
+
+CREATE TABLE gatos (
+    code_id   INTEGER  PRIMARY KEY,
+    name      TEXT NOT NULL,
+    peso      FLOAT NOT NULL,
+    img_path  TEXT
+);
+
+
+CREATE TABLE info (
+    id        INTEGER  PRIMARY KEY,
+    ssid      TEXT ,
+    password  TEXT
+);
+
+
+-- Borrar Tablas
+DROP TABLE canastillas;
+DROP TABLE estibas;
+DROP TABLE gatos;
+
+
+-- Rename 
+RENAME TABLE estibas TO pallets ;
+
+-- Crear Data en tabla 
+INSERT INTO canastillas (code_id , name , peso , img_path )
+VALUES                  (01, "Canastillla base" , 1.25 , "/home/pi/Documents/frubana/Cam_Fruit/cache/canastillas/base.png"  );
+
+
+
+
+# Va\riable que no se guiarda en Base de datos 
+pero si en el API > Codigo pedido 
+
+
+

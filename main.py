@@ -24,12 +24,45 @@ import module.requestModule     as Flow    #To make the request to the servers
 import module.databaseConsume   as SQL     #To consum the database 
 import module.pidFileGen        as PID     #To get the number of the task thats doimg the process
 
+
+import urllib.request as url
+
+def basic_connected():
+    try:
+        url.urlopen("http://google.com")
+    except url.URLError :
+        return False
+    else:
+        return True
+
+    def set_wpa_supplicant(self):
+        self.__wpa_config = False
+        try:
+            os.system('sudo chmod 666 /etc/wpa_supplicant/wpa_supplicant.conf')
+            with open("/etc/wpa_supplicant/wpa_supplicant.conf", "a+") as supplicant:
+                supplicant.write("\n network={ \n    ssid='%s' \n    psk='%s' \n} \n " %(self.__location_info[0][5],self.__location_info[0][6]))
+                logger.info('Success in wifi saving : {}'.format(e))
+        except Exception as e:
+            print('Error_Ocurred seting the wpa_supplicant {}'.format(e))
+            logger.info(' : {}'.format(e))
+
+        try:
+           os.system('sudo chmod 644 /etc/wpa_supplicant/wpa_supplicant.conf')
+           self.__wpa_config = True
+        except Exeption as e:
+           print ('Error reestoring permitions on wpa_supplicant')
+           logger.info(' OJE010 : {}'.format(e))
+
+        if self.__wpa_config : 
+           self.__local_con = "UPDATE data SET ssid_wpa=1 WHERE IDeye='{}' ".format(CONS.IDeye)
+           self.__localdb = SQL.LocalDBConsumption(databasename="location_info.db")
+           self.__location_info = self.__localdb.consult(self.__local_con)
+           self.__localdb.close_connection()
+
+
 _logger = log.configure_logger('default')
 _logger.info('Started Task : {}'.format(PID.ret_pid()))
 #PID.save_PID()
-
-# TODO: Verificar si la camara se encuentra conectada
-
 
 ####################################################################################
 # Estas variables deben cambiar cuando se consulta por primera vez la base de datos 
