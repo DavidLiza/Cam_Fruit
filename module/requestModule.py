@@ -11,7 +11,14 @@ __status__ = "Development"
 
 import requests
 import requests.exceptions
-import log
+
+
+try:
+    import module.log as log
+    import module.constants as CONS
+except:
+    import log 
+    import constants as CONS
 
 __logger = log.configure_logger('default')
 __URL = 'http://192.223.10.244:40000'

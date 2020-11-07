@@ -24,9 +24,9 @@ except:
 logger = log.configure_logger('default')
 dir_path = os.path.dirname(os.path.realpath(__file__))
 if dir_path[len(dir_path)-6 : len(dir_path)] == 'module':
-    foldercontainer=dir_path+str("/../dbs/")
+    foldercontainer=dir_path+str("/../database/")
 else:
-    foldercontainer=dir_path+str("/dbs/")
+    foldercontainer=dir_path+str("/database/")
 
 class LocalDBConsumption():
     """

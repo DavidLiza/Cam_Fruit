@@ -25,18 +25,23 @@ CREATE TABLE gatos (
 );
 
 
-CREATE TABLE info (
-    id        INTEGER  PRIMARY KEY,
-    ssid      TEXT ,
+CREATE TABLE wifis (
+    ssid      TEXT PRIMARY KEY,
     password  TEXT
 );
 
+SELECT
+   rowid,
+   ssid,
+   password
+FROM
+   wifis;
 
 -- Borrar Tablas
 DROP TABLE canastillas;
 DROP TABLE estibas;
 DROP TABLE gatos;
-
+DROP TABLE info;
 
 -- Rename 
 RENAME TABLE estibas TO pallets ;

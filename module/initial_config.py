@@ -11,19 +11,16 @@ __status__     = "Production"
 
 import os
 import sqlite3
-import RPi.GPIO as GPIO
 import urllib.request as url
 
 try:
     import log
-    import gpioModule as GPIOS
-    import sql_adq    as SQL 
-    import constants  as CONS
+    import databaseConsume          as SQL 
+    import constants                as CONS
 except:
-    import module.log        as log
-    import module.gpioModule as GPIOS
-    import module.sql_adq    as SQL
-    import module.constants  as CONS
+    import module.log               as log
+    import module.databaseConsume   as SQL
+    import module.constants         as CONS
 
 logger = log.configure_logger('default')
 
@@ -36,69 +33,85 @@ class Initial_Configuration():
                 check_configuration. This Module can retorn a number from 0 to 5
                 depending in the state of the configuration:
     - 0 - Device coudnt be configured (Denied Permition or missing data)
-    - 1 - Device configured correctly
-    - 2 - 
-    - 3 - Device configured with Socket and NO Internet connection(Captor)
+    - 1 - Device with data in DB
+    - 2 - No wifi DATA
+    - 3 - No Contenedors DATA
+
     - 5 - StandBy device (Waiting For modifications)
     """
     def __init__(self):
         print (CONS.bcolors.HEADER+"Initial Configuration"+CONS.bcolors.ENDC)
-        try :
-            self.__localdb = SQL.LocalDBConsumption(databasename= "location_info.db")
-            self.__location_info    = self.__localdb.consult("SELECT * FROM data")
-            self.__location_struct  = self.__localdb.consult("PRAGMA TABLE_INFO(data)")
-            self.__localdb.close_connection()
-
-        except :
-            logger.error('OJE009, LAB')
+        self.get_wifi_data()
+        self.get_canas_data()
+        self.get_pall_data()
 
     def check_configuration(self):
         
-        self.__ideye = CONS.IDeye
-        if not self.__ideye:
-            return 0
+        if not CONS.IDevice: return 0
 
         # Primera vez que se enciende el dispositivo
-        if not self.__location_info :
-            return self.__first_boot()
+        if not self.__devicen_info :                        return 2
+        elif not self.__canastillas or not self.__pallets:  return 3
         else:
-            self.__yeap={}
-            counter = 0
-            for col_name in self.__location_struct:
-                self.__yeap["{}".format(col_name[1])] = self.__location_info[0][counter]
-                counter = counter+1
-
-        #Base de datos iniciada , pero sin modificarse
-        if self.__location_info[0][1] == '' or ( self.__location_info[0][2] == 0 and self.__location_new[0][3] == 0 )  :
-            print ('Sin modificaciones ,Lea codigo , configure!') 
-            return 5
-        if self.__location_info[0][7] == None or self.__location_info[0][7] == 0 :    
             return 1
 
-        return 0
+    def get_wifi_data (self ,   org = False):
+        try:
+            self.__devicedb = SQL.LocalDBConsumption(databasename= "device.db")
+            self.__devicen_info   = self.__devicedb.consult("SELECT * FROM wifis")
+            self.__device_struct  = self.__devicedb.consult("PRAGMA TABLE_INFO(datwifisa)")
+            self.__devicedb.close_connection()
+            if org:
+                __myjson={}
+                counter = 0
+                for col_name in self.__device_struct:
+                    __myjson["{}".format(col_name[1])] = self.__devicen_info[0][counter]
+                    counter = counter+1
+                return __myjson
 
-    def __first_boot (self):
-       try:
-            _action = """INSERT INTO data (IDeye,IDlocation,Lat,Lon,Tol,ssid,pswd,is_socket)
-                         VALUES           ( "{}" ,""        ,0.0,0.0,0.0,NULL,NULL, {});""".format(CONS.IDeye,CONS.W_SOCKET)
-            self.__localdb = SQL.LocalDBConsumption(databasename= "location_info.db")
-            self.__location_new = self.__localdb.consult(lite_consult=_action , modification=True)
-            self.__location_info = self.__localdb.consult("SELECT * FROM data")
-            self.__localdb.close_connection()
-            
-            if self.__location_new  :
-                print (CONS.bcolors.WARNING+'Primer acceso , lea el siguiente Codigo en pantalla!'+CONS.bcolors.ENDC) 
-                return 5
-            else :  return 0
-                
-       except:
-            print ("Error First Boot")
-            logger.eror('OJE009 FB_DB')
-            return 0
 
-    # Used for main.py , to get the last location info
-    def get_location_info(self):
-        return self.__location_info[0][1],self.__location_info[0][2],self.__location_info[0][3], self.__location_info[0][10]
+        except :
+            print (CONS.bcolors.FAIL+"FAILED TO GET DB"+CONS.bcolors.ENDC)
+            logger.error('get_db Error')
+
+
+    def get_canas_data (self ,  org = False):
+        try:
+            self.__contedb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+            self.__canastillas   = self.__contedb.consult("SELECT * FROM canastillas")
+            self.__cont_Struct   = self.__devicedb.consult("PRAGMA TABLE_INFO(canastillas)")
+            self.__contedb.close_connection()
+            if org:
+                __myjson={}
+                counter = 0
+                for col_name in self.__cont_Struct:
+                    __myjson["{}".format(col_name[1])] = self.__canastillas[0][counter]
+                    counter = counter+1
+                return __myjson
+
+        except :
+            print (CONS.bcolors.FAIL+"FAILED TO GET DB"+CONS.bcolors.ENDC)
+            logger.error('get_db Error')
+
+
+    def get_pall_data (self ,   org = False):
+        try:
+            self.__contedb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+            self.__pallets   = self.__contedb.consult("SELECT * FROM estibas")
+            self.__cont_Struct   = self.__devicedb.consult("PRAGMA TABLE_INFO(estibas)")
+            self.__contedb.close_connection()
+            if org:
+                __myjson={}
+                counter = 0
+                for col_name in self.__cont_Struct:
+                    __myjson["{}".format(col_name[1])] = self.__pallets[0][counter]
+                    counter = counter+1
+                return __myjson
+
+        except :
+            print (CONS.bcolors.FAIL+"FAILED TO GET DB"+CONS.bcolors.ENDC)
+            logger.error('get_db Error')
+
 
 
 if __name__ == '__main__':
@@ -112,5 +125,8 @@ if __name__ == '__main__':
     init = Initial_Configuration()
     state_configuration = init.check_configuration()
     print (CONS.bcolors.WARNING+'State {}'.format(state_configuration)+CONS.bcolors.ENDC)
-    data_info = init.get_location_info()
-    print (CONS.bcolors.HEADER+'Location Info {}'.format(data_info)+CONS.bcolors.ENDC)
+    
+    data_info = init.get_canas_data()
+    print (CONS.bcolors.HEADER+'Canastillas Info {}'.format(data_info)+CONS.bcolors.ENDC)
+    data_info = init.get_pall_data()
+    print (CONS.bcolors.HEADER+'Palletes Info {}'.format(data_info)+CONS.bcolors.ENDC)
