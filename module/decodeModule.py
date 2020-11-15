@@ -1,13 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __author__     = "David Lizarazo"
-__copyright__  = "Copyright 2019"
-__credits__    = ["David Lizarazo"]
-__license__    = "GPL"
 __version__    = "1.0.0"
-__maintainer__ = "David Lizarazo"
-__email__      = "davidlizarazovesga@hotmail.com"
-__status__     = "Production"
 
 from base64 import b64decode
 from Crypto.Cipher import AES

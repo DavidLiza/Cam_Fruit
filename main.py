@@ -43,7 +43,7 @@ def basic_connected():
                 supplicant.write("\n network={ \n    ssid='%s' \n    psk='%s' \n} \n " %(self.__location_info[0][5],self.__location_info[0][6]))
                 logger.info('Success in wifi saving : {}'.format(e))
         except Exception as e:
-            print('Error_Ocurred seting the wpa_supplicant {}'.format(e))
+            print('Error_Ocurred he wpa_supplicant {}'.format(e))
             logger.info(' : {}'.format(e))
 
         try:

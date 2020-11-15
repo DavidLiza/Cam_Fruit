@@ -14,18 +14,15 @@ def __getserial():
 
 # ID device
 IDevice = __getserial()
-# QR reader connected using SerialCable or USBcable ('s' o 'u')
-QR_READER = 's'
+SENSORS   = True
+N_SENSORS = 8
 
 
 # Local Data base
-DB_OWNERS = 'eye_access.db'
-DB_DATA   = 'location_info.db'
+DB_CONTENEDORES = 'eye_access.db'
+DB_WIFI  = 'device.db'
 
-DB_CONTENEDORES = "contenedores.db"
 
-#SUPER USER 
-ID_SUPER  = 674178
 
 class bcolors:
     #Colors

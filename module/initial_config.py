@@ -41,9 +41,12 @@ class Initial_Configuration():
     """
     def __init__(self):
         print (CONS.bcolors.HEADER+"Initial Configuration"+CONS.bcolors.ENDC)
+        self.__num_sensors = 8
         self.get_wifi_data()
         self.get_canas_data()
         self.get_pall_data()
+
+    def check_sensor(self):
 
     def check_configuration(self):
         

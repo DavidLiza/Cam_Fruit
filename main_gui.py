@@ -120,13 +120,13 @@ def popupmsg(title="Hey!" , msg= "Holi"):
     label = ttk.Label(popup, text=msg, font=Subtitle_font)
     label.pack(side="top",expand =True , pady=10)
 
-    B1 = tk.Button(popup ,text="Okay", font=Subtitle_font , command = popup.destroy)
+    B1 = tk.Button(popup ,text="Okay", font=Subtitle_font , command = popup.destroy )
     B1.config( width=25 , foreground="#F8AC18"  )
     B1.pack(ipady=30 , pady=30 ,  padx=18)
     popup.mainloop()
 
 def Testing():
-    config_popup()
+    config_bluetooth()
 
 class Connection_Conf():
     def __init__(self):
@@ -205,8 +205,6 @@ class GUI(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
 
-
-
         self.__frames = {}
 
         for my_frames in (StartPage, Conf_WIFI , Admin_Data, Config_Canas, Config_Estibas , Weigh_Initial ):
@@ -215,7 +213,6 @@ class GUI(tk.Tk):
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(StartPage)
 
-        
 
         # Main Menu Bar 
         menubar = tk.Menu(container)
@@ -241,6 +238,8 @@ class GUI(tk.Tk):
         exchangeChoice.add_command(label="Verifica Conexión",font= Text_font, command=lambda: self.class_connection.check_connection())
         exchangeChoice.add_separator()
         exchangeChoice.add_command(label="Verifica API",     font= Text_font, command=lambda: self.class_connection.check_API() )
+        exchangeChoice.add_separator()
+        exchangeChoice.add_command(label="Bluetooth",        font= Text_font, command=lambda: config_bluetooth() )
 
         menubar.add_cascade(label="Conexión", menu=exchangeChoice)
 
@@ -524,10 +523,105 @@ class Admin_Data(tk.Frame):
         label_im_gato.place(relx= 0.70 , rely= 0.35)
         label_im_gato.image = image_gato
 
+# ------ POP UPS ------
+
+def config_bluetooth( ):
+    def pair():
+        conn_b.config(state = "normal")
+        print ("Seleccionado {}".format(lista_box.curselection()[0]))
+        print ("Got {}".format(lista_box.get(index)))
+        
+            
+    def connect (  ):
+        # echo -e "connect AA:BB:CC:DD:EE \nquit" | bluetoothctl
+        print ("Connectando {} ".format(lista_box.curselection()[0]))
+        print ("Got {}".format(lista_box.get(index)))
+        blue_name.config(state='normal')
+        blue_name.delete(0,tk.END)
+        blue_name.insert(0,"Conectado")
+        blue_name.config(state='disabled')
+
+    def list_blue():
+        pair_b.config(state = "normal")
+        lista_box.insert(tk.END,"ALo")
+        lista_box.insert(tk.END,"LL")
+        lista_box.insert(tk.END,"Adios")
+
+    def onselect(evt):
+        w = evt.widget
+        index = int(w.curselection()[0])
+        print ('You selected item %d: "%s"' % (index,  w.get(index) ))
+        blue_name.config(state='normal')
+        blue_name.delete(0,tk.END)
+        blue_name.insert(0,str(w.get(index)))
+        blue_name.config(state='disabled')
+
+    popup_blue = tk.Tk()
+    
+    popup_blue.wm_title("Configuracion de Bluetooth")
+    popup_blue.geometry("{}x{}+{}+{}".format (int(screen_width*0.45) ,
+                                        int(screen_height*0.55),
+                                        int(screen_width*0.33),
+                                        int(screen_height*0.18) ))
+
+    label = tk.Label(popup_blue, text="Dispositivos Bluetooth", font=Pop_Up_Font_T , fg='#F8AC18' )
+    label.grid(row = 0,column = 0)
+
+
+    tk.Label(popup_blue ,text = "Actualziar dispositivos" , font=Pop_Up_Font_R).grid(row = 2,column = 0)
+   
+    lista_box = tk.Listbox( popup_blue , 
+                            highlightcolor="#F8AC18" , 
+                            highlightbackground="#ffffff",
+                            selectborderwidth=5 , 
+                            font=Pop_Up_Font_R)
+    lista_box.place(height= 200, width= 550 , relx =0.01 , rely = 0.22 )
+    lista_box.bind('<<ListboxSelect>>', onselect)
+
+    blue_name = tk.Entry(popup_blue , font=Pop_Up_Font_R , state='disabled')
+    blue_name.place(height= 100, width= 450 , relx =0.01 , rely = 0.65 )
+
+    listar = tk.Button(popup_blue,text="Escanea", command = lambda: list_blue() )
+    listar.config( font=Pop_Up_Font_R , height=2 , width=10  )
+    listar.place(height= 92, width= 200 , relx =0.73 , rely = 0.22 )
+
+
+    # INVOCAR UNA FUNCION QUE SE ENCUENTRE EN EL MODULO DE LA BASE DE DATOS
+    pair_b = tk.Button(popup_blue ,text="Pair", command = lambda: pair()  ) #or popup.destroy()
+    pair_b.config( font=Pop_Up_Font_R , height=2 , width=10   )
+    pair_b.config(state="disabled")
+    pair_b.place(height= 92, width= 200 , relx =0.73 , rely = 0.65 )
+
+    conn_b = tk.Button(popup_blue ,text="Conectar", command = lambda: connect()  ) #or popup.destroy()
+    conn_b.config( font=Pop_Up_Font_R , height=2 , width=10   )
+    conn_b.config(state="disabled")
+    conn_b.place(height= 92, width= 200 , relx =0.73 , rely = 0.82 )
+
+    popup_blue.mainloop()
+
 
 def config_popup( title="Configurar __" , tipo="CanPalTo"):
-    def save_in_db(id , name , w_val  ):
-        print ("Guardado {} {} {} ".format(id,name,w_val))
+    def save_in_db( ):
+        done =  False
+        try:
+            if id_cont.get() and name_c.get() and weight.get() :
+                            
+                accion = """INSERT INTO {} (code_id , name , peso ) 
+                            VALUES         ({},{},{})""".format(tipo,id_cont.get(),name_c.get(),weight.get())
+                print (accion)
+                #__localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+                #__location_new1 = __localdb.consult(lite_consult=accion , modification=False)
+                done =  True 
+
+        except Exception as e :
+            print (e)
+
+        finally:
+            if done:   
+                popup.destroy()
+                popupmsg(title="Exito" , msg = "Guardado")
+            else :      
+                popupmsg(title="ERROR" , msg = "Error en datos")
 
     def get_cont_weight ( the_entry ):
         the_entry.config(state='normal')
@@ -551,10 +645,10 @@ def config_popup( title="Configurar __" , tipo="CanPalTo"):
     name_label  = tk.Label(popup ,text = "Nombre "       , font=Pop_Up_Font_R).grid(row = 4,column = 0)
     w_label     = tk.Label(popup ,text = "Peso Contenedor",font=Pop_Up_Font_R).grid(row = 6,column = 0)
 
-    a1 = tk.Entry(popup , font=Pop_Up_Font_R)
-    a1.grid(row=2 , column=1 , padx=10 , pady=10 , ipady=30)
-    b1 = tk.Entry(popup , font=Pop_Up_Font_R)
-    b1.grid(row=4 , column=1 , padx=10 , pady=10 , ipady=30)
+    id_cont = tk.Entry(popup , font=Pop_Up_Font_R)
+    id_cont.grid(row=2 , column=1 , padx=10 , pady=10 , ipady=30)
+    name_c = tk.Entry(popup , font=Pop_Up_Font_R)
+    name_c.grid(row=4 , column=1 , padx=10 , pady=10 , ipady=30)
     weight = tk.Entry(popup , font=Pop_Up_Font_R , state='disabled')
     weight.grid(row=6 , column=1 , padx=10 , pady=10 , ipady=30)
 
@@ -563,7 +657,7 @@ def config_popup( title="Configurar __" , tipo="CanPalTo"):
     pesar.grid(row = 6,column = 2 , padx=18 )
 
     # INVOCAR UNA FUNCION QUE SE ENCUENTRE EN EL MODULO DE LA BASE DE DATOS
-    save = tk.Button(popup ,text="Okay", command = lambda: save_in_db(a1.get(),b1.get(),weight.get()) or popup.destroy() )
+    save = tk.Button(popup ,text="Okay", command = lambda: save_in_db()  ) #or popup.destroy()
     save.config( font=Pop_Up_Font_R , height=2 , width=10   )
     save.grid(row = 14,column = 0 , padx=18)
     popup.mainloop()

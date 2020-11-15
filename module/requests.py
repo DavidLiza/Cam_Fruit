@@ -1,17 +1,9 @@
 # -*- coding: utf-8 -*-
-__author__ = "Sebastian Estupiñan"
-__copyright__ = "Copyright 2019, Ojo Biometrico"
-__credits__ = ["Sebastian Estupiñan"]
-__license__ = "GPL"
+__author__ = "David Lizarazo"
 __version__ = "1.0.0"
-__maintainer__ = "David Lizarazo "
-__email__ = "dlizarazo@identica-sa.com"
-__status__ = "Development"
-
 
 import requests
 import requests.exceptions
-
 
 try:
     import module.log as log
@@ -31,24 +23,24 @@ def __getApi(token, clientId, id, email, company, message, image):
                'x-access-token': token}
     if image is None:
         json = {'email': email,
-            'clientId': clientId,
-            'serviceId': '53',
-            'data': {
-                'id': id,
-                'company': company,
-                'message': message,
-                'biometrics': '1'
+                'clientId': clientId,
+                'serviceId': '53',
+                'data': {
+                    'id': id,
+                    'company': company,
+                    'message': message,
+                    'biometrics': '1'
 	    }}
     else:
         json = {'email': email,
-            'clientId': clientId,
-            'serviceId': '53',
-            'data': {
-                'id': id,
-                'company': company,
-                'message': message,
-                'biometrics': '1',
-		'image':image
+                'clientId': clientId,
+                'serviceId': '53',
+                'data': {
+                    'id': id,
+                    'company': company,
+                    'message': message,
+                    'biometrics': '1',
+		            'image':image
             }}
 
     try:
@@ -79,11 +71,19 @@ def __getToken(**kwargs):
             __logger.debug(data)
             return data
         else:
-            __logger.error("OJE002 {}".format(response.status_code))
+            __logger.error("REQ_ERROR {}".format(response.status_code))
     except requests.exceptions.RequestException as e:  # This is the correct syntax
-        __logger.error("OJE003", exc_info=True)
+        __logger.error("REQ_ERROR", exc_info=True)
         return None
 
+
+def request_Frubana(id, email, password, company, message, image=None):
+    tokenResponse = __getToken(email=email,password= password)
+    if tokenResponse is not None:
+        apiResponse = __getApi(tokenResponse['token'], tokenResponse['user']['clientId'], id, email, company, message, image)
+        if apiResponse is not None:
+            return apiResponse
+    return None
 
 def __getTest():
     headers = {'content-type': 'application/json; charset=utf-8'}
@@ -99,13 +99,6 @@ def __getTest():
     else:
         __logger.error(response.status_code)
 
-def requestCT(id, email, password, company, message, image=None):
-    tokenResponse = __getToken(email=email,password= password)
-    if tokenResponse is not None:
-        apiResponse = __getApi(tokenResponse['token'], tokenResponse['user']['clientId'], id, email, company, message, image)
-        if apiResponse is not None:
-            return apiResponse
-    return None
 
 if __name__ == '__main__':
     __getTest()
