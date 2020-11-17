@@ -15,7 +15,7 @@ def __getserial():
 # ID device
 IDevice = __getserial()
 SENSORS   = True
-N_SENSORS = 8
+N_SENSORS = 6
 
 
 # Local Data base

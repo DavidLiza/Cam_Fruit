@@ -26,6 +26,8 @@ import pexpect
 import subprocess
 import sys
 
+#https://www.cnet.com/how-to/how-to-setup-bluetooth-on-a-raspberry-pi-3/
+
 class BluetoothctlError(Exception):
     """This exception is raised, when bluetoothctl fails to start."""
     pass

@@ -27,6 +27,7 @@ import signals
 import signal                               #Used to enable the key interrupt.
 
 
+import barcode
 import urllib.request   as url
 import tkinter          as tk
 from   tkinter          import ttk
@@ -34,11 +35,12 @@ from   time             import sleep
 from   multiprocessing  import Value
 from   datetime         import datetime      #To get the moment when QR is scanned
 from   PIL              import Image, ImageTk
+from   io               import BytesIO
 
 import module.constants as CONS
 import module.decodeModule      as decM    #To desencipt the QR information 
 import module.gpioModule        as LEDS    #To enable and play GPIOS connected
-import module.requestModule     as Flow    #To make the request to the servers
+import module.requests          as API    #To make the request to the servers
 import module.databaseConsume   as SQL     #To consum the database 
 
 #Salidas del Rapsberry :
@@ -149,11 +151,9 @@ class Connection_Conf():
         popupmsg(title="Estado de conexion" ,msg ="AYIOH")
 
 
-"""
-   |\  /|   --   _____  _
-   | \/ |  |==|    |    |\ |
-   |    |  |  |  __|__  | \|
-"""
+# *********************************************************
+# ************************ MAIN ***************************
+# *********************************************************
 
 class GUI(tk.Tk):
     def __init__(self, *args , **kwargs):
@@ -207,7 +207,14 @@ class GUI(tk.Tk):
 
         self.__frames = {}
 
-        for my_frames in (StartPage, Conf_WIFI , Admin_Data, Config_Canas, Config_Estibas , Weigh_Initial ):
+        for my_frames in (  StartPage, 
+                            Conf_WIFI, 
+                            Admin_Data, 
+                            Config_Canas, 
+                            Config_Estibas, 
+                            Weigh_Initial,
+                            Weigh_Result ):
+
             frame = my_frames(container, self)
             self.__frames[my_frames] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -292,8 +299,7 @@ class StartPage(tk.Frame):
         butt_pesaje.place(relx=0.52,rely=0.8 ,  height=120 )
         if not State_config:    butt_pesaje.state(["disabled"])
         else :                  butt_pesaje.state(["!disabled"])
-
-        
+        butt_pesaje.state(["!disabled"])
 
         # -- Labels --
         labeltitle  = ttk.Label(self, text="Recibo", style="Tittle.TLabel" )
@@ -523,19 +529,371 @@ class Admin_Data(tk.Frame):
         label_im_gato.place(relx= 0.70 , rely= 0.35)
         label_im_gato.image = image_gato
 
+class Config_Canas(tk.Frame):
+
+    def __init__(self, parent, controller):
+        
+        ttk.Frame.__init__(self, parent)
+        self.__get_canastillas()
+        self.__controller = controller
+        
+        # --  Get Images --
+        image_home = Image.open(cache_folder+'/back_row.png')
+        image_home = image_home.resize((90,90), Image.ANTIALIAS)
+        image_home = ImageTk.PhotoImage(image_home)
+
+
+        # -- Labels Tittles --
+        labeltitle = ttk.Label(self, text="Configuracion de canastillas ", style="Tittle.TLabel")
+        labeltitle.place(relx=0.1 , rely=0.055)
+        labeltitle2 = ttk.Label(self, text="Tipologías : ", style="SubTittle.TLabel")
+        labeltitle2.place(relx=0.1 , rely=0.135)
+
+
+        labeltitle_canas = ttk.Label(self, text="Canastilla ", style="BlackSubTittle.TLabel")
+        labeltitle_canas.place(relx=0.12 , rely=0.25)
+
+        if not self.__get_canastillas():
+            label_db = ttk.Label(self, text="Sin Canastillas", style="BlackSubTittle.TLabel")
+            label_db.place(relx=0.15 , rely=0.4)
+
+
+        button_canas = ttk.Button(self, text="Añadir ",  style="Principal.TButton" ,
+                            command=lambda: self.__add_canas() )
+        button_canas.place(relx=0.08,rely=0.75)
+        
+ 
+        # -- Buttons --
+        button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
+                            command=lambda: self.__controller.show_frame(Admin_Data))
+        button_home.image = image_home
+        button_home.place(relx= 0.012 , rely= 0.055)
+        
+    def __add_canas (self):
+        config_popup(title="Configurar Canastillas", tipo="canastillas" , frames_controller=self.__controller)
+
+    def __get_canastillas(self):
+        return None
+
+class Config_Estibas(tk.Frame):
+
+    def __init__(self, parent, controller):
+        ttk.Frame.__init__(self, parent)
+        self.__get_estibas()
+        self.__controller = controller
+
+        # --  Get Images --
+        image_home = Image.open(cache_folder+'/back_row.png')
+        image_home = image_home.resize((90,90), Image.ANTIALIAS)
+        image_home = ImageTk.PhotoImage(image_home)
+ 
+        # -- Labels Tittles --
+        labeltitle = ttk.Label(self, text="Configuracion de estibas ", style="Tittle.TLabel")
+        labeltitle.place(relx=0.1 , rely=0.055)
+        labeltitle2 = ttk.Label(self, text="Tipologías : ", style="SubTittle.TLabel")
+        labeltitle2.place(relx=0.1 , rely=0.135)
+
+        
+        labeltitle_canas = ttk.Label(self, text="Estibas ", style="BlackSubTittle.TLabel")
+        labeltitle_canas.place(relx=0.12 , rely=0.25)
+        
+        if not self.__get_estibas():
+            label_db = ttk.Label(self, text="Sin Estibas", style="BlackSubTittle.TLabel")
+            label_db.place(relx=0.15 , rely=0.4)
+
+        # -- Buttons --
+        button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
+                            command=lambda: controller.show_frame(Admin_Data)  )
+        button_home.image = image_home
+        button_home.place(relx= 0.012 , rely= 0.055)
+        
+
+        button_add = ttk.Button(self, text="Agregar",  style="Principal.TButton" ,
+                            command=lambda: self.__add_estibas() )
+        button_add.place(relx=0.08,rely=0.75)
+
+    def __add_estibas(self):
+        config_popup(title="Configurar Estibas", tipo="estibas" , frames_controller=self.__controller)
+        self.__controller.show_frame(StartPage)
+
+
+    def __get_estibas(self):
+        return None
+    
+class Weigh_Initial(tk.Frame):
+
+    def __init__(self, parent, controller):
+        
+        ttk.Frame.__init__(self, parent)
+
+        # --  Get Images --
+        image_limonsin = Image.open(cache_folder+'/limonsin.png')
+        image_limonsin = image_limonsin.resize((150,150), Image.ANTIALIAS)
+        image_limonsin = ImageTk.PhotoImage(image_limonsin)
+
+        image_home = Image.open(cache_folder+'/carbon_home.png')
+        image_home = image_home.resize((90,90), Image.ANTIALIAS)
+        image_home = ImageTk.PhotoImage(image_home)
+
+        image_canastillas = Image.open(cache_folder+'/canastillas/base.png')
+        image_canastillas = image_canastillas.resize((300,300), Image.ANTIALIAS)
+        image_canastillas = ImageTk.PhotoImage(image_canastillas)
+
+        image_estibas = Image.open(cache_folder+'/estibas/estibas.jpg')
+        image_estibas = image_estibas.resize((300,300), Image.ANTIALIAS)
+        image_estibas = ImageTk.PhotoImage(image_estibas)
+
+        image_gato = Image.open(cache_folder+'/gatos/gato.jpg')
+        image_gato = image_gato.resize((300,300), Image.ANTIALIAS)
+        image_gato = ImageTk.PhotoImage(image_gato)
+        
+        # -- Labels Tittles --
+         
+        label_limonsin = tk.Label(self, image = image_limonsin, borderwidth=0)
+        label_limonsin.place(relx= 0.010 , rely= 0.055)
+        label_limonsin.image = image_limonsin
+
+        label_title = ttk.Label(self, text="Proceso de Pesaje ", style="Tittle.TLabel")
+        label_title.place(relx=0.08 , rely=0.055)
+        label_subtitle = ttk.Label(self, text="Seleccione los contenedores: ", style="BlackSubTittle.TLabel")
+        label_subtitle.place(relx=0.08 , rely=0.135)
+
+    
+        label_canastillas = ttk.Label(self, text="Tipo de canastilla: ", style="BlackSubTittle.TLabel")
+        label_canastillas.place(relx=0.08 , rely=0.25)
+
+        label_palets = ttk.Label(self, text="Tipo de Estibas: ", style="BlackSubTittle.TLabel")
+        label_palets.place(relx=0.50 , rely=0.25)
+
+        self.__counter_can = 0
+        self.__counter_pal = 0
+
+        num_canastillas = ttk.Label(self, text="Cantidad: ", style="BlackSubTittle.TLabel")
+        num_canastillas.place(relx=0.08 , rely=0.75)
+
+        num_palets      = ttk.Label(self, text="Cantidad: ", style="BlackSubTittle.TLabel")
+        num_palets.place(relx=0.50 , rely=0.75)
+
+        # -- Entryes Cantidad --
+        self.__entry_can = tk.Entry(self ,font="Aharoni 20" )
+        self.__entry_can.insert(0,"0")
+        self.__entry_can.config(state="disabled")
+        self.__entry_can.place(height= 60, width= 200 , relx=0.205 , rely=0.75)
+
+        self.__entry_pal = tk.Entry(self ,font="Aharoni 20")
+        self.__entry_pal.insert(0,"0")
+        self.__entry_pal.config(state="disabled")
+        self.__entry_pal.place(height= 60, width= 200 , relx=0.625 , rely=0.75)
+
+        # -- Botoncitos -- (+ / -)
+        mas_can = tk.Button(self, text="+", fg="dark green", bg = "white" ,  font = Subtitle_font ,
+                            command=lambda : self.onClick_can())
+        mas_can.place(height= 90, width= 90 ,  relx=0.35 , rely=0.745)
+        
+        men_can = tk.Button(self, text="-", fg="dark green", bg = "white" ,  font = Subtitle_font ,
+                            command=lambda : self.onClick_can(action=False))
+        men_can.place(height= 90, width= 90 ,  relx=0.40 , rely=0.745)
+
+        mas_pal = tk.Button(self, text="+", fg="dark green", bg = "white" , font = Subtitle_font , 
+                            command=lambda : self.onClick_pal())
+        mas_pal.place(height= 90, width= 90 ,  relx=0.75 , rely=0.745)
+        
+        men_pal = tk.Button(self, text="-", fg="dark green", bg = "white" , font = Subtitle_font , 
+                            command=lambda : self.onClick_pal(action=False))
+        men_pal.place(height= 90, width= 90 ,  relx=0.80 , rely=0.745)
+
+
+        # -- Option Menu --
+        self.__canas_list  = [ ] 
+        self.__pal_list    = [ ] 
+
+        self.get_canastillas()
+        self.get_palets()
+        
+        variable_can = tk.StringVar(self)
+        variable_can.set(self.__canas_list[0])
+
+        variable_pal = tk.StringVar(self)
+        variable_pal.set(self.__pal_list[0])
+
+        opt_canastillas = tk.OptionMenu(self, variable_can, *self.__canas_list)
+        opt_canastillas.config(width=40, font=Text_font)
+        opt_canastillas.place(relx=0.08 , rely=0.3)
+
+        opt_palets = tk.OptionMenu(self, variable_pal, *self.__pal_list)
+        opt_palets.config(width=40, font=Text_font)
+        opt_palets.place(relx=0.5 , rely=0.3)
+
+        # -- Buttons --
+        button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
+                            command=lambda: controller.show_frame(StartPage))
+        button_home.image = image_home
+        button_home.place(relx= 0.88 , rely= 0.055)
+
+
+        button_start = ttk.Button(self, text="Iniciar",  style="Secundary.TButton" ,
+                            command=lambda: controller.show_frame(Weigh_Result))
+        button_start.place(relx=0.15,rely=0.85 ,    height=100)
+
+
+    def onClick_can(self, action=True):
+        if action:
+            self.__counter_can = self.__counter_can+ 1
+        else:
+            self.__counter_can = self.__counter_can - 1
+        
+        self.__entry_can.config(state='normal')
+        self.__entry_can.delete(0,tk.END)
+        self.__entry_can.insert(0,str(self.__counter_can))
+        self.__entry_can.config(state='disabled')
+
+        
+    def onClick_pal(self, action=True ):
+        if action:
+            self.__counter_pal = self.__counter_pal + 1
+        else:
+            self.__counter_pal = self.__counter_pal - 1
+
+        self.__entry_pal.config(state='normal')
+        self.__entry_pal.delete(0,tk.END)
+        self.__entry_pal.insert(0,str(self.__counter_pal))
+        self.__entry_pal.config(state='disabled')
+
+
+    def get_canastillas (self):
+        self.__canas_list.append("Canastilla1")
+        self.__canas_list.append("Canastilla2")
+            
+        accion = """SELECT * FROM canastillas"""
+        #__localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+        #__canastillas = __localdb.consult(lite_consult=accion , modification=False)
+        if not __canastillas:
+            print ("Regresar a la pantalla principal")
+        else:
+            for canas in __canastillas:
+                print (canas)
+
+
+
+    def get_palets (self):
+        self.__pal_list.append("Palet1")
+        self.__pal_list.append("Palet2")
+                   
+        accion = """SELECT * FROM estibas """
+        #__localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+        #__palets = __localdb.consult(lite_consult=accion , modification=False)
+        if not __palets:
+            print ("Regresar a la pantalla principal")
+        else:
+            for canas in __canastillas:
+                print (canas)
+
+
+class Weigh_Result(tk.Frame):
+
+    def __init__(self, parent, controller):
+        
+        ttk.Frame.__init__(self, parent)
+        self.__controller = controller
+        print ("INit Weigh Result")
+        
+        # --  Get Images --
+        image_home = Image.open(cache_folder+'/back_row.png')
+        image_home = image_home.resize((90,90), Image.ANTIALIAS)
+        image_home = ImageTk.PhotoImage(image_home)
+
+
+        # -- Labels Tittles --
+        labeltitle = ttk.Label(self, text="Proceso de pesaje ", style="Tittle.TLabel")
+        labeltitle.place(relx=0.1 , rely=0.055)
+        labeltitle2 = ttk.Label(self, text="Resultados : ", style="SubTittle.TLabel")
+        labeltitle2.place(relx=0.1 , rely=0.135)
+
+        self.__weight = self.__get_weights()
+        if self.__weight :
+            labeltitle_res = ttk.Label(self, text="¡Proceso Exitoso!", style="BlackSubTittle.TLabel")
+            labeltitle_res.place(relx=0.4 , rely=0.25)
+
+            label_peso_total = ttk.Label(self, text="Peso Total", style="BlackSubTittle.TLabel")
+            label_peso_total.place(relx=0.445 , rely=0.3)
+
+            label_peso_total = ttk.Label(self, text="{} Kg".format(self.__weight), style="BlackSubTittle.TLabel")
+            label_peso_total.place(relx=0.46 , rely=0.35)
+            self.__gen_barcode()
+ 
+        # -- Buttons --
+        button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
+                            command=lambda: self.__controller.show_frame(Weigh_Initial))
+        button_home.image = image_home
+        button_home.place(relx= 0.012 , rely= 0.055)
+        
+        button_again = ttk.Button(self, text="Pesar de nuevo ",  style="Principal.TButton" ,
+                            command=lambda: self.__same() )
+        button_again.place(relx=0.14,rely=0.8)
+        
+        button_nuevo = ttk.Button(self, text="Nuevo pesaje ",  style="Principal.TButton" ,
+                            command=lambda: self.__new() )
+        button_nuevo.place(relx=0.54,rely=0.8)
+        
+        
+    def __new (self):
+        self.__controller.show_frame(Weigh_Initial)
+
+    def __same (self):
+        self.__controller.show_frame(Weigh_Initial)
+
+    def __gen_barcode(self):
+        
+        # Make sure to pass the number as string 
+        number = '5901234123457'
+
+        rv = BytesIO()
+        my_code  = barcode.EAN13(number , writer=barcode.writer.ImageWriter()).write(rv)
+        
+        my_code2 = barcode.EAN13(number , writer=barcode.writer.ImageWriter())
+        my_code2.save("new_code")
+        
+        image_home = Image.open('new_code.png')
+        width, height = image_home.size
+        print ("Size of image {} {} ".format(width,height))
+        image_home = image_home.resize((600,360), Image.ANTIALIAS)
+        image_home = ImageTk.PhotoImage(image_home)
+
+        label_code = tk.Label(self, image = image_home, borderwidth=0)
+        label_code.place(relx= 0.34 , rely= 0.41)
+        label_code.image = image_home
+
+
+
+
+    def __get_weights(self):
+        return 123
+
 # ------ POP UPS ------
 
 def config_bluetooth( ):
+
+    def onselect(evt):
+        w = evt.widget
+        index_value = int(w.curselection()[0])
+        print ('You selected item %d: "%s"' % (index_value,  w.get(index_value) ))
+        blue_name.config(state='normal')
+        blue_name.delete(0,tk.END)
+        blue_name.insert(0,str(w.get(index_value)))
+        blue_name.config(state='disabled')
+
     def pair():
         conn_b.config(state = "normal")
-        print ("Seleccionado {}".format(lista_box.curselection()[0]))
-        print ("Got {}".format(lista_box.get(index)))
-        
+        index_value = int(lista_box.curselection()[0])
+        print ("Seleccionado {}".format(index_value))
+        print ("Got {}".format(lista_box.get(index_value)))
             
     def connect (  ):
         # echo -e "connect AA:BB:CC:DD:EE \nquit" | bluetoothctl
+        
+        index_value = int(lista_box.curselection()[0])
         print ("Connectando {} ".format(lista_box.curselection()[0]))
-        print ("Got {}".format(lista_box.get(index)))
+        print ("Got {}".format(lista_box.get(index_value)))
         blue_name.config(state='normal')
         blue_name.delete(0,tk.END)
         blue_name.insert(0,"Conectado")
@@ -547,17 +905,8 @@ def config_bluetooth( ):
         lista_box.insert(tk.END,"LL")
         lista_box.insert(tk.END,"Adios")
 
-    def onselect(evt):
-        w = evt.widget
-        index = int(w.curselection()[0])
-        print ('You selected item %d: "%s"' % (index,  w.get(index) ))
-        blue_name.config(state='normal')
-        blue_name.delete(0,tk.END)
-        blue_name.insert(0,str(w.get(index)))
-        blue_name.config(state='disabled')
-
     popup_blue = tk.Tk()
-    
+
     popup_blue.wm_title("Configuracion de Bluetooth")
     popup_blue.geometry("{}x{}+{}+{}".format (int(screen_width*0.45) ,
                                         int(screen_height*0.55),
@@ -599,8 +948,7 @@ def config_bluetooth( ):
 
     popup_blue.mainloop()
 
-
-def config_popup( title="Configurar __" , tipo="CanPalTo"):
+def config_popup( frames_controller , title="Configurar __" , tipo="CanPalTo" ):
     def save_in_db( ):
         done =  False
         try:
@@ -619,7 +967,12 @@ def config_popup( title="Configurar __" , tipo="CanPalTo"):
         finally:
             if done:   
                 popup.destroy()
+
+                if tipo == "canastillas" : frames_controller.show_frame(Config_Estibas)
+                if tipo == "estibas" : frames_controller.show_frame(Config_Estibas)
+
                 popupmsg(title="Exito" , msg = "Guardado")
+
             else :      
                 popupmsg(title="ERROR" , msg = "Error en datos")
 
@@ -641,9 +994,9 @@ def config_popup( title="Configurar __" , tipo="CanPalTo"):
     label.grid(row = 0,column = 0)
 
 
-    id_label    = tk.Label(popup ,text = "ID Contenedor" , font=Pop_Up_Font_R).grid(row = 2,column = 0)
-    name_label  = tk.Label(popup ,text = "Nombre "       , font=Pop_Up_Font_R).grid(row = 4,column = 0)
-    w_label     = tk.Label(popup ,text = "Peso Contenedor",font=Pop_Up_Font_R).grid(row = 6,column = 0)
+    tk.Label(popup ,text = "ID Contenedor" , font=Pop_Up_Font_R).grid(row = 2,column = 0)
+    tk.Label(popup ,text = "Nombre "       , font=Pop_Up_Font_R).grid(row = 4,column = 0)
+    tk.Label(popup ,text = "Peso Contenedor",font=Pop_Up_Font_R).grid(row = 6,column = 0)
 
     id_cont = tk.Entry(popup , font=Pop_Up_Font_R)
     id_cont.grid(row=2 , column=1 , padx=10 , pady=10 , ipady=30)
@@ -662,161 +1015,13 @@ def config_popup( title="Configurar __" , tipo="CanPalTo"):
     save.grid(row = 14,column = 0 , padx=18)
     popup.mainloop()
 
-
-class Config_Canas(tk.Frame):
-
-    def __init__(self, parent, controller):
-        ttk.Frame.__init__(self, parent)
-        self.__get_canastillas()
-
-        
-        # --  Get Images --
-        image_home = Image.open(cache_folder+'/back_row.png')
-        image_home = image_home.resize((90,90), Image.ANTIALIAS)
-        image_home = ImageTk.PhotoImage(image_home)
-
-
-        # -- Labels Tittles --
-        labeltitle = ttk.Label(self, text="Configuracion de canastillas ", style="Tittle.TLabel")
-        labeltitle.place(relx=0.1 , rely=0.055)
-        labeltitle2 = ttk.Label(self, text="Tipologías : ", style="SubTittle.TLabel")
-        labeltitle2.place(relx=0.1 , rely=0.135)
-
-
-        labeltitle_canas = ttk.Label(self, text="Canastilla ", style="BlackSubTittle.TLabel")
-        labeltitle_canas.place(relx=0.12 , rely=0.25)
-
-        if not self.__get_canastillas():
-            label_db = ttk.Label(self, text="Sin Canastillas", style="BlackSubTittle.TLabel")
-            label_db.place(relx=0.15 , rely=0.4)
-
-
-        button_canas = ttk.Button(self, text="Añadir ",  style="Principal.TButton" ,
-                            command=lambda: self.__add_canas() )
-        button_canas.place(relx=0.08,rely=0.75)
-        
- 
-        # -- Buttons --
-        button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
-                            command=lambda: controller.show_frame(Admin_Data))
-        button_home.image = image_home
-        button_home.place(relx= 0.012 , rely= 0.055)
-        
-    def __add_canas (self):
-        config_popup(title="Configurar Canastillas", tipo="Canastilla : ")
-
-
-
-    def __get_canastillas(self):
-        return None
-
-
-class Config_Estibas(tk.Frame):
-
-    def __init__(self, parent, controller):
-        ttk.Frame.__init__(self, parent)
-        self.__get_estibas()
-        self.__controller = controller
-
-        # --  Get Images --
-        image_home = Image.open(cache_folder+'/back_row.png')
-        image_home = image_home.resize((90,90), Image.ANTIALIAS)
-        image_home = ImageTk.PhotoImage(image_home)
- 
-        # -- Labels Tittles --
-        labeltitle = ttk.Label(self, text="Configuracion de estibas ", style="Tittle.TLabel")
-        labeltitle.place(relx=0.1 , rely=0.055)
-        labeltitle2 = ttk.Label(self, text="Tipologías : ", style="SubTittle.TLabel")
-        labeltitle2.place(relx=0.1 , rely=0.135)
-
-        
-        labeltitle_canas = ttk.Label(self, text="Estibas ", style="BlackSubTittle.TLabel")
-        labeltitle_canas.place(relx=0.12 , rely=0.25)
-        
-        if not self.__get_estibas():
-            label_db = ttk.Label(self, text="Sin Estibas", style="BlackSubTittle.TLabel")
-            label_db.place(relx=0.15 , rely=0.4)
-
-        # -- Buttons --
-        button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
-                            command=lambda: controller.show_frame(Admin_Data)  )
-        button_home.image = image_home
-        button_home.place(relx= 0.012 , rely= 0.055)
-        
-
-        button_add = ttk.Button(self, text="Agregar",  style="Principal.TButton" ,
-                            command=lambda: self.__add_estibas() )
-        button_add.place(relx=0.08,rely=0.75)
-
-    def __add_estibas(self):
-        config_popup(title="Configurar Canastillas", tipo="Canastilla : ")
-        self.__controller.show_frame(StartPage)
-
-
-    def __get_estibas(self):
-        return None
-
-        
-class Weigh_Initial(tk.Frame):
-
-    def __init__(self, parent, controller):
-        
-        ttk.Frame.__init__(self, parent)
-
-        
-        # --  Get Images --
-        image_home = Image.open(cache_folder+'/b_house.png')
-        image_home = image_home.resize((50,50), Image.ANTIALIAS)
-        image_home = ImageTk.PhotoImage(image_home)
-
-        image_canastillas = Image.open(cache_folder+'/canastillas/base.png')
-        image_canastillas = image_canastillas.resize((300,300), Image.ANTIALIAS)
-        image_canastillas = ImageTk.PhotoImage(image_canastillas)
-
-        image_estibas = Image.open(cache_folder+'/estibas/estibas.jpg')
-        image_estibas = image_estibas.resize((300,300), Image.ANTIALIAS)
-        image_estibas = ImageTk.PhotoImage(image_estibas)
-
-        image_gato = Image.open(cache_folder+'/gatos/gato.jpg')
-        image_gato = image_gato.resize((300,300), Image.ANTIALIAS)
-        image_gato = ImageTk.PhotoImage(image_gato)
-        
-        # -- Labels Tittles --
-         
-        labeltitle2 = ttk.Label(self, text="Configuracion de contenedores ", style="Tittle.TLabel")
-        labeltitle2.place(relx=0.08 , rely=0.055)
-        labeltitle2 = ttk.Label(self, text="Tipologías : ", style="BlackSubTittle.TLabel")
-        labeltitle2.place(relx=0.08 , rely=0.135)
-
-
-        # -- Buttons --
-        button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
-                            command=lambda: controller.show_frame(StartPage))
-        button_home.image = image_home
-        button_home.place(relx= 0.012 , rely= 0.055)
-
-
-        label = ttk.Label(self, text="Page Two!!!", style="Tittle.TLabel" )
-        label.pack(pady=10,padx=10)
-
-        button1 = ttk.Button(self, text="Back to Home",
-                            command=lambda: controller.show_frame(StartPage))
-        button1.pack()
-
-        button2 = ttk.Button(self, text="Page One",
-                            command=lambda: controller.show_frame(Admin_Data))
-        button2.pack()
-        
+# ------  Inicial ------
 
 def main():
-    
-
     # CALL INTI CLASS
     app = GUI()
     app.mainloop()
     
-
-
 if __name__ == "__main__":
     os.system('clear')
     print (CONS.IDevice)
@@ -825,15 +1030,6 @@ if __name__ == "__main__":
 
     main()
     # Call the main configuraiton 
-
-
-
-# ************  INPUTS ************
-
-# e = ttk.Entry(midIQ)
-# e.insert(0,10)
-# e.pack()
-# e.focus_set()
 
 # Last tutorial I saw
 #https://pythonprogramming.net/object-oriented-programming-crash-course-tkinter/?completed=/tkinter-depth-tutorial-making-actual-program/

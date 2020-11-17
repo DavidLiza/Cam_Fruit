@@ -1,0 +1,36 @@
+Force the screen to stay on
+
+sudo nano /etc/lightdm/lightdm.conf
+Add the following lines to the [SeatDefaults] section:
+
+
+# don't sleep the screen
+xserver-command=X -s 0 dpms
+
+
+--------------------------------
+ANOTHER OPTION 
+---------------------------------
+https://www.raspberrypi.org/documentation/configuration/screensaver.md
+
+sudo nano /boot/cmdline.txt
+consoleblank=0
+
+
+----------------------------------
+
+I believe the edit to cmdline mentioned above is only useful if the system is set to boot to command line only.
+
+For boot to desktop then adding the 3 lines below to autostart works for me.
+
+Edit with nano editor:
+Code: Select all
+
+nano /home/pi/.config/lxsession/LXDE-pi/autostart
+Add these 3 lines at the end:
+Code: Select all
+
+@xset s noblank
+@xset s off
+@xset s -dpms
+Save and exit CTRL x Y

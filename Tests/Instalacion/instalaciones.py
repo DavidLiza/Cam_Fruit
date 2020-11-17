@@ -61,6 +61,14 @@ if entrada == 'y':
   except:
      os.system('sudo pip3 install Cython')
 
+#****** Barcode ******
+entrada = input ("Desea instalar (barcode) : (y/n)")
+if entrada == 'y':
+  try:
+     import barcode
+  except:
+     os.system('sudo pip3 install python-barcode')
+
 #******* pyzbar ********
 """
 entrada = input ("Desea instalar (sqlite3) : (y/n)")
