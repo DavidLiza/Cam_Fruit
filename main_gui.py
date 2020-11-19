@@ -160,10 +160,12 @@ class GUI(tk.Tk):
         global screen_height
         global screen_width
         global cache_folder
+
         icon = cache_folder+'/frubana_logo.png'
         image_frubana = cache_folder+'/frubana.png'
 
         tk.Tk.__init__(self)
+        self.class_connection = Connection_Conf()
         
         screen_height = self.winfo_screenheight()
         screen_width  = self.winfo_screenwidth()
@@ -179,7 +181,7 @@ class GUI(tk.Tk):
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
         self.bg_label.image = image
 
-        # Initialize style
+        # -- Initialize styles --
         style = ttk.Style()
         style.configure('TFrame', background='white')
 
@@ -191,24 +193,20 @@ class GUI(tk.Tk):
                         width = 20 , padding=8 , pady=100 ,
                         background="white" ,  font = Button_font , highlightbackground = "#F8AC18")
 
-        # style.configure("TButton", padding=20, relief="raised" , borderwidth=3 , foreground="#F8AC18" , 
-        #                 background="white" ,  font = Button_font , highlightbackground = "#F8AC18")
-
         style.configure("Tittle.TLabel" , background="white" , font=Title_font , foreground="#F8AC18" )
         style.configure("SubTittle.TLabel" , background="white" , font=Subtitle_font , foreground="#F8AC18" )
         style.configure("BlackSubTittle.TLabel" , background="white" , font=Subtitle_font , foreground="black" )
-        # style.configure("TButton", padding=6, relief="sunken",background="#F8AC18")
         
         container = tk.Frame(self)
         container.pack(side="top" , fill="both" , expand= True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-
+        # -- Frames --
         self.__frames = {}
-
         for my_frames in (  StartPage, 
                             Conf_WIFI, 
+                            Admin_wifis,
                             Admin_Data, 
                             Config_Canas, 
                             Config_Estibas, 
@@ -221,24 +219,21 @@ class GUI(tk.Tk):
         self.show_frame(StartPage)
 
 
-        # Main Menu Bar 
+        # -- Main Menu Bar --
         menubar = tk.Menu(container)
         menubar.config(font=Text_font)
         
         menubar.add_command(label="\u0020", activebackground=menubar.cget("background"))
         filemenu = tk.Menu(menubar, tearoff =0 )
-        filemenu.add_command(label="Save settings", font=Text_font, command = lambda: popupmsg(title="Not supported" , msg="Not supported just yet!"))
         filemenu.add_separator()
         filemenu.add_command(label="Exit",          font=Text_font,  command=quit)
         filemenu.add_separator()
-        filemenu.add_command(label="Test",          font=Text_font,  command=lambda : Testing())
-        menubar.add_cascade(label="File",   menu=filemenu)
+        menubar.add_cascade (label="System",   menu=filemenu)
 
         menubar.add_command(label="\u0020", activebackground=menubar.cget("background"))
         menubar.add_command(label="\u22EE", activebackground=menubar.cget("background"))
         menubar.add_command(label="\u0020", activebackground=menubar.cget("background"))
 
-        self.class_connection = Connection_Conf()
         exchangeChoice = tk.Menu(menubar, tearoff=1)
         exchangeChoice.add_command(label="Mostrar Redes",    font= Text_font, command=lambda: self.class_connection.check_connection())
         exchangeChoice.add_separator()
@@ -247,13 +242,14 @@ class GUI(tk.Tk):
         exchangeChoice.add_command(label="Verifica API",     font= Text_font, command=lambda: self.class_connection.check_API() )
         exchangeChoice.add_separator()
         exchangeChoice.add_command(label="Bluetooth",        font= Text_font, command=lambda: config_bluetooth() )
-
-        menubar.add_cascade(label="Conexión", menu=exchangeChoice)
+        menubar.add_cascade(label="Conexiónes", menu=exchangeChoice)
 
         tk.Tk.config(self, menu=menubar)
 
     def show_frame(self, cont):
         frame = self.__frames[cont]
+        #frame.__init__()
+        #frame.update()
         frame.tkraise()
 
 # *********************************************************
@@ -299,7 +295,6 @@ class StartPage(tk.Frame):
         butt_pesaje.place(relx=0.52,rely=0.8 ,  height=120 )
         if not State_config:    butt_pesaje.state(["disabled"])
         else :                  butt_pesaje.state(["!disabled"])
-        butt_pesaje.state(["!disabled"])
 
         # -- Labels --
         labeltitle  = ttk.Label(self, text="Recibo", style="Tittle.TLabel" )
@@ -334,7 +329,7 @@ class Conf_WIFI(tk.Frame):
 
     def __init__(self, parent, controller):
         ttk.Frame.__init__(self,parent)
-
+        print ("Conf Wifi ")
         self.__controller = controller
         self.__val_data  = "disabled"
         self.__change_button = False
@@ -359,8 +354,8 @@ class Conf_WIFI(tk.Frame):
         button_home.place(relx= 0.90 , rely= 0.018)
         
 
-        self.save = ttk.Button(self, text="Guardar Configuracion", style="Principal.TButton",
-                            command=lambda: self.save_ssid_data() )
+        self.save = ttk.Button( self, text="Guardar Configuracion", style="Principal.TButton",
+                                command=lambda: self.save_ssid_data() )
         self.save.state([self.__val_data])
         self.save.place(relx=0.312,rely=0.75 , height=120)
 
@@ -412,42 +407,220 @@ class Conf_WIFI(tk.Frame):
                 self.__change_button = False
         return True 
 
+    def wifi_error(self,error):
+        print (CONS.bcolors.FAIL + "Error {}".format(error) + CONS.bcolors.ENDC)
+        popupmsg(title="Error Wifi" , msg="Verifique la informacion")
+
     def save_ssid_data(self):
         global State_connection 
 
-        self.__wpa_config = False
+        __wpa_config = False
         name     = self.name_ssid.get()
         password = self.password.get()
 
         try:
-            State_connection = True
-            raise Exception ("Holi")
-            os.system('sudo chmod 666 /etc/wpa_supplicant/wpa_supplicant.conf')
-            with open("/etc/wpa_supplicant/wpa_supplicant.conf", "a+") as supplicant:
-                supplicant.write("\n network={ \n    ssid='%s' \n    psk='%s' \n} \n " %(name,password))
-            State_connection = True
+            action = """INSERT INTO wifis (ssid , password) 
+                        VALUES ( '{}' , '{}' ) ;""".format(name,password)
+            self.__localdb = SQL.LocalDBConsumption(databasename="device.db")
+            self.__location_info = self.__localdb.consult(action,modification=True)
+            self.__localdb.close_connection()
+
+            if not self.__location_info:
+                __wpa_config = False
+                self.wifi_error(error= "Wifi already exists")
+                return 
+            __wpa_config = True
 
         except Exception as e:
-            print(CONS.bcolors.FAIL+'Error_Ocurred seting the wpa_supplicant {}'.format(e)+CONS.bcolors.ENDC)
+            self.wifi_error(error= "Wifi already exists")
+            return 
 
-        try:
-            self.__wpa_config = True
-            raise Exception ("Holi")
-            os.system('sudo chmod 644 /etc/wpa_supplicant/wpa_supplicant.conf')
-            self.__wpa_config = True
-        except Exception as e:
-           print (CONS.bcolors.FAIL+'Error reestoring permitions on wpa_supplicant'+CONS.bcolors.ENDC)
+        if __wpa_config : 
+            try:
+                os.system('sudo chmod 666 /etc/wpa_supplicant/wpa_supplicant.conf')
+                with open("/etc/wpa_supplicant/wpa_supplicant.conf", "a+") as supplicant:
+                    supplicant.write("\n network={ \n    ssid='%s' \n    psk='%s' \n} \n " %(name,password))
+                State_connection = True
+            except Exception as e:
+                self.wifi_error(error="WPA supplicant Error")
+                return
 
-        if self.__wpa_config : 
+            try:
+                os.system('sudo chmod 644 /etc/wpa_supplicant/wpa_supplicant.conf')
+                __wpa_config = True
+            except Exception as e:
+                self.wifi_error(error="WPA back error")
+                return
 
-           __local_con = """INSERT INTO info (ssid,password) VALUES ('{}' , '{}' ) """.format(name, password)
-           print (__local_con)
-           #self.__localdb = SQL.LocalDBConsumption(databasename="device.db")
-           #self.__location_info = self.__localdb.consult(__local_con)
-           #self.__localdb.close_connection()
-        
         self.__controller.show_frame(StartPage)
         popupmsg(title="Wifi" , msg="Red Wifi Guardada")
+
+
+class Admin_wifis(tk.Frame):
+
+    def __init__(self, parent, controller):
+        
+        ttk.Frame.__init__(self, parent)
+        self.__controller = controller 
+        # --  Get Images --
+        image_limonsin = Image.open(cache_folder+'/limonsin.png')
+        image_limonsin = image_limonsin.resize((150,150), Image.ANTIALIAS)
+        image_limonsin = ImageTk.PhotoImage(image_limonsin)
+
+        image_home = Image.open(cache_folder+'/carbon_home.png')
+        image_home = image_home.resize((90,90), Image.ANTIALIAS)
+        image_home = ImageTk.PhotoImage(image_home)
+
+        image_wifi = Image.open(cache_folder+'/wifi.png')
+        image_wifi = image_wifi.resize((75,75), Image.ANTIALIAS)
+        image_wifi = ImageTk.PhotoImage(image_wifi)
+        
+        # -- Labels Tittles --
+         
+        label_limonsin = tk.Label(self, image = image_limonsin, borderwidth=0)
+        label_limonsin.place(relx= 0.010 , rely= 0.055)
+        label_limonsin.image = image_limonsin
+
+
+        label_im_wifi = tk.Label(self, image = image_wifi , borderwidth=0 , background="white")
+        label_im_wifi.place(relx= 0.300 , rely= 0.25)
+        label_im_wifi.image = image_wifi
+        
+        label_title = ttk.Label(self, text="Proceso de Pesaje ", style="Tittle.TLabel")
+        label_title.place(relx=0.08 , rely=0.055)
+        label_subtitle = ttk.Label(self, text="Seleccione los contenedores: ", style="BlackSubTittle.TLabel")
+        label_subtitle.place(relx=0.08 , rely=0.135)
+
+    
+        label_canastillas = ttk.Label(self, text="Tipo de canastilla: ", style="BlackSubTittle.TLabel")
+        label_canastillas.place(relx=0.08 , rely=0.25)
+
+        label_palets = ttk.Label(self, text="Tipo de Estibas: ", style="BlackSubTittle.TLabel")
+        label_palets.place(relx=0.50 , rely=0.25)
+
+        self.__counter_can = 0
+        self.__counter_pal = 0
+
+        num_canastillas = ttk.Label(self, text="Cantidad: ", style="BlackSubTittle.TLabel")
+        num_canastillas.place(relx=0.08 , rely=0.75)
+
+        num_palets      = ttk.Label(self, text="Cantidad: ", style="BlackSubTittle.TLabel")
+        num_palets.place(relx=0.50 , rely=0.75)
+
+        # -- Entryes Cantidad --
+        self.__entry_can = tk.Entry(self ,font="Aharoni 20" )
+        self.__entry_can.insert(0,"0")
+        self.__entry_can.config(state="disabled")
+        self.__entry_can.place(height= 60, width= 200 , relx=0.205 , rely=0.75)
+
+        self.__entry_pal = tk.Entry(self ,font="Aharoni 20")
+        self.__entry_pal.insert(0,"0")
+        self.__entry_pal.config(state="disabled")
+        self.__entry_pal.place(height= 60, width= 200 , relx=0.625 , rely=0.75)
+
+        # -- Botoncitos -- (+ / -)
+        mas_can = tk.Button(self, text="+", fg="dark green", bg = "white" ,  font = Subtitle_font ,
+                            command=lambda : self.onClick_can())
+        mas_can.place(height= 90, width= 90 ,  relx=0.35 , rely=0.745)
+        
+        men_can = tk.Button(self, text="-", fg="dark green", bg = "white" ,  font = Subtitle_font ,
+                            command=lambda : self.onClick_can(action=False))
+        men_can.place(height= 90, width= 90 ,  relx=0.40 , rely=0.745)
+
+        mas_pal = tk.Button(self, text="+", fg="dark green", bg = "white" , font = Subtitle_font , 
+                            command=lambda : self.onClick_pal())
+        mas_pal.place(height= 90, width= 90 ,  relx=0.75 , rely=0.745)
+        
+        men_pal = tk.Button(self, text="-", fg="dark green", bg = "white" , font = Subtitle_font , 
+                            command=lambda : self.onClick_pal(action=False))
+        men_pal.place(height= 90, width= 90 ,  relx=0.80 , rely=0.745)
+
+
+        # -- Option Menu --
+        self.__canas_list  = ["TTEST1" ] 
+        self.__pal_list    = ["Test1" ] 
+
+        self.get_canastillas()
+        self.get_palets()
+        
+        variable_can = tk.StringVar(self)
+        variable_can.set(self.__canas_list[0])
+
+        variable_pal = tk.StringVar(self)
+        variable_pal.set(self.__pal_list[0])
+
+        opt_canastillas = tk.OptionMenu(self, variable_can, *self.__canas_list)
+        opt_canastillas.config(width=40, font=Text_font)
+        opt_canastillas.place(relx=0.08 , rely=0.3)
+
+        opt_palets = tk.OptionMenu(self, variable_pal, *self.__pal_list)
+        opt_palets.config(width=40, font=Text_font)
+        opt_palets.place(relx=0.5 , rely=0.3)
+
+        # -- Buttons --
+        button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
+                            command=lambda: self.__controller.show_frame(StartPage))
+        button_home.image = image_home
+        button_home.place(relx= 0.88 , rely= 0.055)
+
+
+        button_start = ttk.Button(self, text="Iniciar",  style="Secundary.TButton" ,
+                            command=lambda: self.__controller.show_frame(Weigh_Result))
+        button_start.place(relx=0.15,rely=0.85 ,    height=100)
+
+
+    def onClick_can(self, action=True):
+        if action:
+            self.__counter_can = self.__counter_can+ 1
+        else:
+            self.__counter_can = self.__counter_can - 1
+        if self.__counter_can < 0 :  self.__counter_can = 0
+        self.__entry_can.config(state='normal')
+        self.__entry_can.delete(0,tk.END)
+        self.__entry_can.insert(0,str(self.__counter_can))
+        self.__entry_can.config(state='disabled')
+
+        
+    def onClick_pal(self, action=True ):
+        if action:
+            self.__counter_pal = self.__counter_pal + 1
+        else:
+            self.__counter_pal = self.__counter_pal - 1
+        if self.__counter_pal < 0 : self.__counter_pal = 0
+        self.__entry_pal.config(state='normal')
+        self.__entry_pal.delete(0,tk.END)
+        self.__entry_pal.insert(0,str(self.__counter_pal))
+        self.__entry_pal.config(state='disabled')
+
+
+    def get_canastillas (self):
+            
+        accion = """SELECT * FROM canastillas"""
+        __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+        __canastillas = __localdb.consult(lite_consult=accion , modification=False)
+        if not __canastillas:
+            self.__controller.show_frame(StartPage)
+        else:
+            for canas in __canastillas:
+                print (canas)
+                self.__canas_list.append("Canastilla1")
+                self.__canas_list.append("Canastilla2")
+
+
+
+    def get_palets (self):
+                   
+        accion = """SELECT * FROM estibas """
+        __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+        __palets = __localdb.consult(lite_consult=accion , modification=False)
+        if not __palets:
+            self.__controller.show_frame(StartPage)
+        else:
+            for pal in __palets:
+                print (pal)
+                self.__pal_list.append("Palet1")
+                self.__pal_list.append("Palet2")
+
 
 # ************************************************************
 # ******************** CONFIGURATION *************************
@@ -625,7 +798,7 @@ class Weigh_Initial(tk.Frame):
     def __init__(self, parent, controller):
         
         ttk.Frame.__init__(self, parent)
-
+        self.__controller = controller 
         # --  Get Images --
         image_limonsin = Image.open(cache_folder+'/limonsin.png')
         image_limonsin = image_limonsin.resize((150,150), Image.ANTIALIAS)
@@ -704,8 +877,8 @@ class Weigh_Initial(tk.Frame):
 
 
         # -- Option Menu --
-        self.__canas_list  = [ ] 
-        self.__pal_list    = [ ] 
+        self.__canas_list  = ["TTEST1" ] 
+        self.__pal_list    = ["Test1" ] 
 
         self.get_canastillas()
         self.get_palets()
@@ -726,13 +899,13 @@ class Weigh_Initial(tk.Frame):
 
         # -- Buttons --
         button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
-                            command=lambda: controller.show_frame(StartPage))
+                            command=lambda: self.__controller.show_frame(StartPage))
         button_home.image = image_home
         button_home.place(relx= 0.88 , rely= 0.055)
 
 
         button_start = ttk.Button(self, text="Iniciar",  style="Secundary.TButton" ,
-                            command=lambda: controller.show_frame(Weigh_Result))
+                            command=lambda: self.__controller.show_frame(Weigh_Result))
         button_start.place(relx=0.15,rely=0.85 ,    height=100)
 
 
@@ -741,7 +914,7 @@ class Weigh_Initial(tk.Frame):
             self.__counter_can = self.__counter_can+ 1
         else:
             self.__counter_can = self.__counter_can - 1
-        
+        if self.__counter_can < 0 :  self.__counter_can = 0
         self.__entry_can.config(state='normal')
         self.__entry_can.delete(0,tk.END)
         self.__entry_can.insert(0,str(self.__counter_can))
@@ -753,7 +926,7 @@ class Weigh_Initial(tk.Frame):
             self.__counter_pal = self.__counter_pal + 1
         else:
             self.__counter_pal = self.__counter_pal - 1
-
+        if self.__counter_pal < 0 : self.__counter_pal = 0
         self.__entry_pal.config(state='normal')
         self.__entry_pal.delete(0,tk.END)
         self.__entry_pal.insert(0,str(self.__counter_pal))
@@ -761,33 +934,32 @@ class Weigh_Initial(tk.Frame):
 
 
     def get_canastillas (self):
-        self.__canas_list.append("Canastilla1")
-        self.__canas_list.append("Canastilla2")
             
         accion = """SELECT * FROM canastillas"""
-        #__localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
-        #__canastillas = __localdb.consult(lite_consult=accion , modification=False)
+        __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+        __canastillas = __localdb.consult(lite_consult=accion , modification=False)
         if not __canastillas:
-            print ("Regresar a la pantalla principal")
+            self.__controller.show_frame(StartPage)
         else:
             for canas in __canastillas:
                 print (canas)
+                self.__canas_list.append("Canastilla1")
+                self.__canas_list.append("Canastilla2")
 
 
 
     def get_palets (self):
-        self.__pal_list.append("Palet1")
-        self.__pal_list.append("Palet2")
                    
         accion = """SELECT * FROM estibas """
-        #__localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
-        #__palets = __localdb.consult(lite_consult=accion , modification=False)
+        __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
+        __palets = __localdb.consult(lite_consult=accion , modification=False)
         if not __palets:
-            print ("Regresar a la pantalla principal")
+            self.__controller.show_frame(StartPage)
         else:
-            for canas in __canastillas:
-                print (canas)
-
+            for pal in __palets:
+                print (pal)
+                self.__pal_list.append("Palet1")
+                self.__pal_list.append("Palet2")
 
 class Weigh_Result(tk.Frame):
 

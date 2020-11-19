@@ -24,6 +24,7 @@ CREATE TABLE gatos (
     img_path  TEXT
 );
 
+# device.db
 
 CREATE TABLE wifis (
     ssid      TEXT PRIMARY KEY,
