@@ -1,0 +1,24 @@
+
+Configuracion Ideal de resolucion :
+1920 x 108 
+
+
+Agregar al final el config.txt
+
+max_usb_current=1
+hdmi_force_hotplug=1
+config_hdmi_boost=7
+hdmi_group=2
+hdmi_mode=87
+hdmi_drive=1
+display_rotate=0
+hdmi_cvt 1024 600 60 6 0 0 0
+
+http://www.lcdwiki.com/7inch_HDMI_Display-C
+
+----------------------------------------------------------
+
+
+
+Mas configurcion 
+https://www.circuitbasics.com/raspberry-pi-touchscreen-calibration-screen-rotation/
