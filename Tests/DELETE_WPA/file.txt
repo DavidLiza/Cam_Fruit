@@ -1,0 +1,16 @@
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=CO
+
+network={
+        ssid="IdenticaWIFI"
+        psk="BiometriA"
+        key_mgmt=WPA-PSK
+}
+
+
+
+network={
+    ssid='MAKI2'
+    psk='makita260417'
+}
