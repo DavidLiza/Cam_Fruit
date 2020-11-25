@@ -1,14 +1,28 @@
+# -*- coding: utf-8 -*-
+__author__ = "David Lizarazo"
+__version__ = "1.0.0"
+
+# Este modulo captura imagen de una camara conectada por USB
 import sys
 import pygame
 import pygame.camera
+from StringIO import StringIO
 
-pygame.init()
+
+#pygame.init()
 pygame.camera.init()
 cam_list = pygame.camera.list_cameras()
-cam = pygame.camera.Camera(cam_list[0],(32,24))
+cam = pygame.camera.Camera(cam_list[0],(320,240))
 cam.start()
 
+# -- Conversion a Binario --
 image1 = cam.get_image()
+zdata = StringIO()
+
+
+print (bin_data)
+print (buffer)
+
 pygame.image.save(image1,'101.png')
 cam.stop()
 

@@ -156,7 +156,7 @@ class Connection_Conf():
             popupmsg(title="Estado de conexion" ,msg = "Desconecatdo")
 
     def check_API(self):
-        print ("API?")
+        API.
         popupmsg(title="Estado de conexion" ,msg ="AYIOH")
 
 
@@ -475,7 +475,7 @@ class Add_WIFI(tk.Frame):
             try:
                 os.system('sudo chmod 666 /etc/wpa_supplicant/wpa_supplicant.conf')
                 with open("/etc/wpa_supplicant/wpa_supplicant.conf", "a+") as supplicant:
-                    supplicant.write("\nnetwork={ \n    ssid='%s' \n    psk='%s' \n} \n " %(name,password))
+                    supplicant.write("""\nnetwork={ \n    ssid="%s" \n    psk="%s" \n} \n """ %(name,password))
                 State_connection = True
             except Exception as e:
                 self.wifi_error(error="WPA supplicant Error")
@@ -588,10 +588,6 @@ class Admin_wifis(tk.Frame):
         self.__entry_can.insert(0,str(w.get(index_value)))
         self.__entry_can.config(state='disabled')
 
-    def wifi_error(self,error):
-        print (CONS.bcolors.FAIL + "Error {}".format(error) + CONS.bcolors.ENDC)
-        popupmsg(title="Error Wifi" , msg=error)
-
     def __delete_red(self):
         index_value   = int(self.lista_box.curselection()[0])
         ssid_name     = self.lista_box.get(index_value)
@@ -614,9 +610,6 @@ class Admin_wifis(tk.Frame):
                 supplicant.close()
 
             cont = cont-1
-            print (lines[cont])
-            print (lines[cont+1])
-
 
             for x in range(4):
                 lines.pop(cont)
@@ -640,6 +633,10 @@ class Admin_wifis(tk.Frame):
         print ("Se elimino ")
         self.__controller.show_frame(Admin_wifis)
 
+    def wifi_error(self,error):
+        print (CONS.bcolors.FAIL + "Error {}".format(error) + CONS.bcolors.ENDC)
+        popupmsg(title="Error Wifi" , msg=error)
+
     def get_redes (self):
             
         accion = """SELECT ssid FROM wifis;"""
@@ -656,6 +653,14 @@ class Admin_wifis(tk.Frame):
                 self.lista_box.insert(tk.END,wifis[0])
 
     def update_frame(self):
+        
+        # -- Clear Widgets --
+        self.lista_box.selection_clear(0, tk.END)
+        self.lista_box.delete(0, tk.END)
+        self.__entry_can.config(state='normal')
+        self.__entry_can.delete(0,tk.END)
+        self.__entry_can.config(state='disabled')
+
         self.get_redes()
         print ("Actualizacion del Frame Admin Wifi ")
 
@@ -862,6 +867,12 @@ class Config_Canas(tk.Frame):
             canas_exists = True
 
     def update_frame(self):
+        # -- Clear Widgets --
+        self.lista_box.selection_clear(0, tk.END)
+        self.lista_box.delete(0, tk.END)
+        self.__entry_can.config(state='normal')
+        self.__entry_can.delete(0,tk.END)
+        self.__entry_can.config(state='disabled')
 
         self.__get_canastillas()
         if not self.__canastillas :
@@ -881,7 +892,7 @@ class Config_Canas(tk.Frame):
 
         else : 
             try:
-                self.lista_box.select_clear()
+                self.lista_box.selection_clear(0, tk.END)
             except :
                 print ("Seleccione este ")
             self.show_cont()
@@ -923,7 +934,6 @@ class Config_Estibas(tk.Frame):
         button_add = ttk.Button(self, text="Agregar",  style="Principal.TButton" ,
                             command=lambda: self.__add_estibas() )
         button_add.place(relx=0.08,rely=0.75)
-
 
     def show_cont (self ):
 
@@ -1005,6 +1015,14 @@ class Config_Estibas(tk.Frame):
             estibas_exists = True
     
     def update_frame(self):
+        
+        # -- Clear Widgets --
+        self.lista_box.selection_clear(0, tk.END)
+        self.lista_box.delete(0, tk.END)
+        self.__entry_can.config(state='normal')
+        self.__entry_can.delete(0,tk.END)
+        self.__entry_can.config(state='disabled')
+
         self.__get_estibas()
         if not self.__estibas :
             label_db = ttk.Label(self, text="Sin Estibas", style="BlackSubTittle.TLabel")
@@ -1022,7 +1040,7 @@ class Config_Estibas(tk.Frame):
         else : 
             
             try:
-                self.lista_box.select_clear()
+                self.lista_box.selection_clear(0, tk.END)
             except:
                 print ("Doone")
             self.show_cont()
