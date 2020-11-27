@@ -1,0 +1,109 @@
+Para crear Headless:
+
+-check frequency :
+    - cat /proc/cpuinfo
+    
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+En la particion Boot:
+- Crear un archiuvo vacio ssh
+- crear archivo wpa_supplicant.conf
+
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=CO
+
+network={
+    ssid="MAKI2"
+    psk="makita260417"
+}
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+- Archivo cmdline :  
+    - sudo nano /boot/cmdline.txt
+        console=serial0,115200 console=tty1 root=/dev/mmcblk0p7 rootfstype=ext4 elevator=deadline fsck.repair=yes quiet rootwait consoleblank=0
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+- Archivo de pantalla:
+    - sudo nano /etc/lightdm/lightdm.conf
+
+# --------- ESTE FUE EL QUE ME FUNCIONO  --------
+# don't sleep the screen
+
+[Seat:*]
+xserver-command=X -s 0 dpms
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+- Archivo config.txt
+# For more options and information see
+# http://rpf.io/configtxt
+# Some settings may impact device functionality. See link above for details
+
+# Disable the rainbow splash screen
+disable_splash=1
+
+# Disable bluetooth
+#dtoverlay=pi3-disable-bt
+
+# Set the bootloader delay to 0 seconds. The default is 1s if not specified.
+boot_delay=0
+
+# uncomment if you get no picture on HDMI for a default "safe" mode
+#hdmi_safe=1
+
+# uncomment this if your display has a black border of unused pixels visible
+# and your display can output without overscan
+disable_overscan=0
+
+#uncomment to overclock the arm. 700 MHz is the default.
+arm_freq=1500
+#arm_freq_min=700
+#gpu_freq=500
+#core_freq=500
+#sdram_freq=500
+#sdram_schmoo=0x02000020
+#over_voltage=2
+#sdram_over_voltage=2
+#arm_freq=800
+
+
+# Enable audio (loads snd_bcm2835)
+dtparam=audio=on
+
+[pi4]
+# Enable DRM VC4 V3D driver on top of the dispmanx display stack
+dtoverlay=vc4-fkms-v3d
+max_framebuffers=2
+
+[all]
+#dtoverlay=vc4-fkms-v3d
+
+# NOOBS Auto-generated Settings:
+start_x=1
+gpu_mem=280
+hdmi_enable_4kp60=1
+
+max_usb_current=1
+hdmi_force_hotplug=1
+
+# Señal del HDMI
+# 11 Maximo 7 Ideal
+config_hdmi_boost=10
+
+# DMT - Display Monitor Timing
+hdmi_group=2
+
+# 1 - DVI   2 - HDMI (Audio)
+hdmi_drive=2
+
+#cvt  :  width height framerate aspect margins interlace reduce_blanking
+hdmi_cvt 1920 1080 60 6 0 0 0
+
+
+
+
+

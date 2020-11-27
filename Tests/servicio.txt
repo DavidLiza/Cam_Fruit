@@ -1,0 +1,51 @@
+-El servicio para el dispositivo fue montado en la siguiente direccion :
+/lib/systemd/system/
+-El nombre del servicio es :
+frubana.service
+
+El archivo del servicio es :
+[Unit]
+Description=Frubana
+After=multi-user.target
+
+[Service]
+WorkingDirectory=/home/pi/Documents/Cam_Fruit
+User=pi
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/Documents/Cam_Fruit/main_gui.py &
+Restart=always 
+
+[Install]
+WantedBy=multi-user.target
+
+
+pm2-root.service
+pm2-root.service
+
+11.370s dev-mmcblk0p7.device
+10.083s systemd-fsck-root.service
+3.921s pm2-root.service
+2.683s phpsessionclean.service
+2.509s rpi-eeprom-update.service
+1.991s apt-daily.service
+1.228s apache2.service
+897ms exim4.service
+754ms dphys-swapfile.service
+662ms dnsmasq.service
+619ms networking.service
+
+[Install]
+WantedBy=multi-user.target
+
+
+# --------------------------------------------------------
+Ubicacion de los servicios :
+
+/etc/systemd/system
+/lib/systemd/system/
+
+# --------------------------------------------------------
+
+
+sudo systemctl daemon-reload
+sudo systemctl reload frubana.service

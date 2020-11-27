@@ -6,14 +6,29 @@ _version_="1.0.0"
 import os
 import sys
 
+# Colores para impresion 
+class bcolors:
+    #Colors
+    HEADER = '\033[95m'  # MAGENTA
+    OKBLUE = '\033[94m'  # BLUE
+    OKGREEN = '\033[92m' # GREEN
+    WARNING = '\033[93m' # YELLOW
+    FAIL = '\033[91m'    # RED
+    CIAN = '\033[96m'    # CIAN
+    
+    #Instructions
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 py_version = sys.version_info[0]
 if py_version != 3 :
-   print ("No esta corriendo python3")
+   print (bcolors.FAIL+"No esta corriendo python3"+bcolors.ENDC)
    sys.exit()
 else : 
    print ("Corriendo Python3")
 
-input ("Holi")
 #***** Actualizar y Mejorar sin preguntar *****
 try:
    os.system('sudo apt-get update')
@@ -23,11 +38,11 @@ except:
 try:
    os.system('sudo apt-get upgrade')
 except:
-   print('Couldnt do the upgrade')
+   print(bcolors.FAIL+'Couldnt do the upgrade'+bcolors.ENDC)
 
 #****** pip3  ******
 try:
-  entrada = input ("Desea visualziar todos los elementos de pip3 : (y/n)")
+  entrada = input (bcolors.HEADER+"Desea visualziar todos los elementos de pip3 : (y/n)"+bcolors.ENDC)
   if entrada == 'y':
     os.system('pip3 freeze')
   else:
@@ -38,16 +53,22 @@ except:
 
 
 #***** Sqlite3 *****
-entrada = input ("Desea instalar (sqlite3) : (y/n)")
+entrada = input (bcolors.HEADER+"Desea instalar (sqlite3) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
   try:
      import sqlite3
      print ("****** sqlite3 LIBRERIA YA INSTALADA ********")
   except:
      os.system('sudo apt-get install sqlite3')
+     
+#***** VNC *****
+entrada = input (bcolors.HEADER+"Desea instalar (VNC) : (y/n)"+bcolors.ENDC)
+if entrada == 'y':
+     os.system('sudo apt install realvnc-vnc-server realvnc-vnc-viewer')
+
 
 #**** YAML *******
-entrada = input ("Desea instalar (YAML) : (y/n)")
+entrada = input (bcolors.HEADER+"Desea instalar (YAML) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
   try:
      import yaml
@@ -55,7 +76,7 @@ if entrada == 'y':
      os.system('sudo pip3 install pyyaml')
 
 #****** RPI ******
-entrada = input ("Desea instalar (RPI) : (y/n)")
+entrada = input (bcolors.HEADER+"Desea instalar (RPI) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
   try:
      import RPi.GPIO as GPIO
@@ -63,7 +84,7 @@ if entrada == 'y':
      os.system('sudo pip3 --version')
 
 #****** Cython ******
-entrada = input ("Desea instalar (sqlite3) : (y/n)")
+entrada = input (bcolors.HEADER+"Desea instalar (sqlite3) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
   try:
      import Cython
@@ -71,7 +92,7 @@ if entrada == 'y':
      os.system('sudo pip3 install Cython')
 
 #****** Barcode ******
-entrada = input ("Desea instalar (barcode) : (y/n)")
+entrada = input (bcolors.HEADER+"Desea instalar (barcode) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
   try:
      import barcode
@@ -80,7 +101,7 @@ if entrada == 'y':
 
 
 #****** Pygame ******
-entrada = input ("Desea instalar (Pygame) : (y/n)")
+entrada = input (bcolors.HEADER+"Desea instalar (Pygame) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
   try:
      import pygame
@@ -89,7 +110,7 @@ if entrada == 'y':
 
 
 #****** Requests ******
-entrada = input ("Desea instalar (requests) : (y/n)")
+entrada = input (bcolors.HEADER+"Desea instalar (requests) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
   try:
      import requests
@@ -97,14 +118,13 @@ if entrada == 'y':
      os.system('sudo pip3 install requests')
 
 #****** Tkinter ******
-entrada = input ("Desea instalar (requests) : (y/n)")
+entrada = input (bcolors.HEADER+"Desea instalar (tkinter) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
   try:
-     import requests
+     import tkinter
   except:
-     os.system('sudo pip3 install tkinter')
-
-
+      os.system('sudo pip3 install tkinter')
+      os.system('sudo apt-get install python3-pil python3-pil.imagetk')
 
 #******* pyzbar ********
 """

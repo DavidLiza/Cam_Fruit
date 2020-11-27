@@ -1,6 +1,6 @@
 
 Configuracion Ideal de resolucion :
-1920 x 108 
+1920 x 1080
 
 
 Agregar al final el config.txt

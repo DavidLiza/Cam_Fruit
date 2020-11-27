@@ -7,8 +7,6 @@ __version__ ="1.0.0"
 GPIO para enceder perifericos necesario
 para el desarrollo del presente proyeto """
 
-from num2words import num2words
-from subprocess import call
 import RPi.GPIO as GPIO
 import time
 
