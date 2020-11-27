@@ -5,3 +5,4 @@ vcgencmd get_camera
 - Viosualizacion en Pantalla
 - Lectura de bascula
 - Deteccion de intruicion por sensores
+- On raspberry pi 3
