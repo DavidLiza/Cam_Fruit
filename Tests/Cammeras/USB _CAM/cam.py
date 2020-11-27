@@ -6,7 +6,7 @@ __version__ = "1.0.0"
 import sys
 import pygame
 import pygame.camera
-from StringIO import StringIO
+from io import StringIO
 
 
 #pygame.init()
@@ -18,10 +18,11 @@ cam.start()
 # -- Conversion a Binario --
 image1 = cam.get_image()
 zdata = StringIO()
+pygame.image.save(image1,'101.png')
+pygame.image.save(image1,zdata)
+image1.save(zdata, 'PNG')
+print (zdata.getvalue())
 
-
-print (bin_data)
-print (buffer)
 
 pygame.image.save(image1,'101.png')
 cam.stop()

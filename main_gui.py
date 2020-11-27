@@ -156,7 +156,7 @@ class Connection_Conf():
             popupmsg(title="Estado de conexion" ,msg = "Desconecatdo")
 
     def check_API(self):
-        API.
+        #API.
         popupmsg(title="Estado de conexion" ,msg ="AYIOH")
 
 

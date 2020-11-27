@@ -4,7 +4,16 @@ _author_= "David Lizarazo"
 _version_="1.0.0"
 
 import os
+import sys
 
+py_version = sys.version_info[0]
+if py_version != 3 :
+   print ("No esta corriendo python3")
+   sys.exit()
+else : 
+   print ("Corriendo Python3")
+
+input ("Holi")
 #***** Actualizar y Mejorar sin preguntar *****
 try:
    os.system('sudo apt-get update')
@@ -69,6 +78,34 @@ if entrada == 'y':
   except:
      os.system('sudo pip3 install python-barcode')
 
+
+#****** Pygame ******
+entrada = input ("Desea instalar (Pygame) : (y/n)")
+if entrada == 'y':
+  try:
+     import pygame
+  except:
+     os.system('sudo pip3 install pygame')
+
+
+#****** Requests ******
+entrada = input ("Desea instalar (requests) : (y/n)")
+if entrada == 'y':
+  try:
+     import requests
+  except:
+     os.system('sudo pip3 install requests')
+
+#****** Tkinter ******
+entrada = input ("Desea instalar (requests) : (y/n)")
+if entrada == 'y':
+  try:
+     import requests
+  except:
+     os.system('sudo pip3 install tkinter')
+
+
+
 #******* pyzbar ********
 """
 entrada = input ("Desea instalar (sqlite3) : (y/n)")
@@ -78,77 +115,4 @@ if entrada == 'y':
   except:
      os.system('sudo pip3 install pyzbar')
 """
-
-#***** MYSQL ******
-"""
-entrada = input ("Desea instalar (sqlite3) : (y/n)")
-if entrada == 'y':
-  try: 
-     import mysql.connector
-  except:
-     os.system('sudo pip3 install mysql-connector')
-"""
-
-#****** espeak ******
-entrada = input ("Desea instalar (modulo espeak) : (y/n)")
-if entrada == 'y':
-  try:
-      os.system('sudo apt-get install espeak')
-  except:
-      print ("Couldnt Install Espeak")
-
-#****** mpg123 ******
-print ("(mpg123 : reproductor audio) , este ese necesario para reproduccion de gTTS")
-entrada = input (" Desea instalar  : (y/n)")
-if entrada == 'y':
-  try:
-      os.system('sudo apt-get -y install mpg123')
-  except:
-      print ("Couldnt Install mpg123")
-
-#****** gtts ****** reproductor de audio ( Google Text to speech)
-entrada = input ("Desea instalar (modulo espeak) : (y/n)")
-if entrada == 'y':
-  try:
-     from gtts import gTTS
-  except:
-     os.system('sudo pip3 install gTTS')
-
-
-#****** rpi_rf_module ******
-entrada = input ("Desea instalar (modulo espeak) : (y/n)")
-if entrada == 'y':
-  try:
-      os.system('sudo pip3 rpi_rf')
-  except:
-      print ("Couldnt install RF module")
-
-#****** MP4 converter *************
-entrada = input ("Desea instalar (Conversor a MP4) : (y/n)")
-if entrada == 'y':
-  try:
-      os.system('sudo apt install -y gpac')
-  except:
-      print ('Couldnt Install MP4 converter')
-
-# ***** Instalacion de Open CV ******* 
-print ("Desea instalar opencv de una ?? (y/n)")
-print ("Usted debe encontrarse en home")
-
-opcv = input()
-
-if opcv == 'y' :
-  print ('Usted dijo que si ')
-  os.system('chmod +x *.sh')
-  os.system('./download-opencv.sh')
-  os.system('./install-deps.sh')
-  os.system('./build-opencv.sh')
-  os.system('chmod +x *.sh')
-  print('Ingrese en de la siguiente manera y ejecute el comando mostrado :')
-  print ('cd ~/opencv/opencv-4.1.2/build')
-  print ('sudo make install')
-
-
-else : 
- print ('Open Cv no sera instalado !! ')
 
