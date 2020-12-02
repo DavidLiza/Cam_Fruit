@@ -8,14 +8,11 @@ from Crypto.Cipher import AES
 import json
 
 try:
-    import module.log as log
     import module.constants as CONS
 except:
-    import log 
     import constants as CONS
 
 
-logger = log.configure_logger('default')
 key = b"Identica6045500*"
 NOT_PROT = 3
 
@@ -44,4 +41,4 @@ def decodeModule(data):
 
 if __name__ == '__main__':
     value = "quFjn+6qxFoyKi1i0ZCcdSn9aH+C0IZjsx+qn08q35FfoXKzIIMsXRKrQti2kAwP2fst275Ac3JNzezT1ljJPnGFsagOOw5BYxMLFqFtvNhYhz8y4dhTbbbP/wnS6nd5k40twFng2Lc4kdQ+nR2lsQ=="
-    logger.debug(decodeModule(value))
+    #logger.debug(decodeModule(value))

@@ -15,16 +15,13 @@ import serial
 from threading import Thread
 
 try: 
-    import module.log           as log
     import module.constants     as CONS
     import module.decodeModule  as DEC
 
 except Exception as e:
-    import log
     import constants        as CONS
     import decodeModule     as DEC
 
-logger = log.configure_logger('default')
 """
 PINOUT MODULE 
 (Gpios Pin Fisicos)
@@ -35,13 +32,14 @@ PINOUT MODULE
 
 class Just_Read ():
 
-    def __init__(self,speed = 9600 , port = 'ttyAMA0' ):
+    def __init__(self,speed = 9600 , port = 'ttyS0' ):
         self.__speed = speed
         self.__port  = '/dev/'+ port
         self.__isRun = False
         self.__wdec  = True
         try:
-            self._serial   = serial.Serial(self.__port, self.__speed , timeout=5 )
+            #self._serial   = serial.Serial(self.__port, self.__speed , timeout=1 )
+            self._serial   = serial.Serial(self.__port, self.__speed  )
             self.__isRun = True
         except Exception as e:
             print ("Error {}".format(e))
@@ -89,13 +87,10 @@ class Just_Read ():
         
         #try:
         while self.__isRun:
-                self._data=self._serial.read() 
-                #x = ser.read()          # read one byte
-                #s = ser.read(65)        # read up to ten bytes (timeout)
-                #line = ser.readline()   # read a '\n' terminated line
-                #b = ser.read_all()
-                #c = ser.readall()
-                #self._serial.in_waiting
+                self._data=self._serial.readline()
+                print (CONS.bcolors.OKBLUE+"Bytes: {}     Decoded:  {}".format(self._data,self._data.decode())+CONS.bcolors.ENDC)
+                
+                """
                 if self._data:
                     while (not self._did_read ) and (self._did_read != DEC.NOT_PROT) :
                         self.ver_serial()
@@ -118,8 +113,10 @@ class Just_Read ():
                     elif self._did_read == DEC.NOT_PROT :
                         print (" NONE Serial Prot")
                         return False
+                
                 else :
                     return 0
+                """
 
         """
         except Exception as e:

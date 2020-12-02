@@ -15,13 +15,10 @@ import json
 import datetime
 
 try: 
-    import module.log       as log
     import module.constants as CONS
 except:
-    import log
     import constants as CONS
 
-logger = log.configure_logger('default')
 dir_path = os.path.dirname(os.path.realpath(__file__))
 if dir_path[len(dir_path)-6 : len(dir_path)] == 'module':
     foldercontainer=dir_path+str("/../database/")
@@ -85,7 +82,7 @@ class LocalDBConsumption():
 
         except Exception as e:
              print ('Error in consult : {}'.format(e))
-             logger.error('OJE006 Consult')
+             #logger.error('OJE006 Consult')
              return False
 
     def close_connection (self):
@@ -95,7 +92,8 @@ class LocalDBConsumption():
                self.__sqliteConnection.close()
                self.__isconnected = False
        except Exception as e :
-           logger.error('OJE006 Closing DB')
+           pass
+           # logger.error('OJE006 Closing DB')
        finally :
            if self.__isconnected:
                self.__sqliteConnection.close()
@@ -113,8 +111,9 @@ class LocalDBConsumption():
            else:
               return True
        except Exception as e :
+           pass
            #print ("Error in get entrance SQLITE3 database :  {}".format(e))
-           logger.error('OJE006 Entrance')
+           #logger.error('OJE006 Entrance')
 
 
     def __login_user(self):
@@ -136,7 +135,7 @@ class LocalDBConsumption():
                 return True
        except Exception as e :
            print ("Error in __login_user SQLITE database {}".format(e))
-           logger.error('OJE006 LOGIN')
+           #logger.error('OJE006 LOGIN')
           
     def is_token_activated (self,token,idown):
         """
@@ -158,7 +157,7 @@ class LocalDBConsumption():
                 return True
         except Exception as e :
             print ("Error in is_token_activated SQLITE3 database: {}".format(e))
-            logger.error('OJE006 TOKEN')
+            #logger.error('OJE006 TOKEN')
 
     def get_entrance(self,IdScanned=1019128590): 
         """

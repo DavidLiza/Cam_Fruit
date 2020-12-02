@@ -14,13 +14,10 @@ from io import BytesIO
 
 
 try:
-    import module.log as log
     import module.constants as CONS
 except:
-    import log 
     import constants as CONS
 
-__logger = log.configure_logger('default')
 __URL = 'https://federate-public-services.federate-dev.frubana.com/ops-mvps/perfect-arrive'
 __AUTH = '/api/authNU'
 __API = '/api'
@@ -43,7 +40,26 @@ def API_verify ():
                     final_weight= 0 )
     return test
 
-def __getImage():
+    
+def API_verify_image ():
+    try:
+        print (CONS.bcolors.OKGREEN+"Api Verification"+CONS.bcolors.ENDC)
+        my_image = getImage()
+        test = request_Frubana(basekts     = 0 , 
+                        product     ="test_api", 
+                        state       = "test_api", 
+                        num_pallets = 0 , 
+                        pallets_id  = "palet",
+                        abs_weight  = 0 ,
+                        final_weight= 0,
+                        image= my_image )
+        return test
+        
+    except Exception as e:
+        return False
+    
+
+def getImage():
     global CAMARA
     try:
         CAMARA.start()
@@ -53,6 +69,9 @@ def __getImage():
         img = Image.frombytes('RGBA',IMG_SIZE, data)
         buffer = BytesIO()
         img.save(buffer,'png')
+        
+        
+        pygame.image.save(image_normal,'cache/cheese/101.png')
         CAMARA.stop()
 
         return buffer.getvalue()
@@ -191,7 +210,7 @@ def __sec_consume():
                                        
 def __thr_consume(): 
     
-    image = __getImage()
+    image = getImage()
     request_Frubana(
                     basekts     = 66 , 
                     product     ="product2", 
