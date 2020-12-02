@@ -5,7 +5,7 @@ frubana.service
 
 El archivo del servicio es :
 [Unit]
-Description=Frubana
+Description=Frubana peso perfecto
 After=multi-user.target
 
 [Service]

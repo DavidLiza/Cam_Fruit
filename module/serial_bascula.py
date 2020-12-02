@@ -35,21 +35,20 @@ PINOUT MODULE
 
 class Just_Read ():
 
-    def __init__(self,speed = 9600 , port = 'ttyAMA0' , configure = False):
+    def __init__(self,speed = 9600 , port = 'ttyAMA0' ):
         self.__speed = speed
         self.__port  = '/dev/'+ port
         self.__isRun = False
-        self.__wdec   = True
-        self.__configure = True if configure ==5 else False 
+        self.__wdec  = True
         try:
-            self._serial   = serial.Serial(self.__port, self.__speed )
+            self._serial   = serial.Serial(self.__port, self.__speed , timeout=5 )
             self.__isRun = True
         except Exception as e:
-            logger.info('OJE008 INIT_CONNECTION ')
+            print ("Error {}".format(e))
+            #logger.info('OJE008 INIT_CONNECTION ')
             self.__isRun = False
             self._serial = False
 
-        self._serial_protocol = DEC.Qr_Protocol()
 
     @property
     def port(self):
@@ -65,21 +64,15 @@ class Just_Read ():
 
     def __del__(self):
         self.__isRun = False
-        
-    def set_configure(self,configure):
-        self.__configure = configure 
-        self._serial_protocol.set_key(newkey=self.__newkey)
 
-    def get_decoded(self,data_protocol):
-        to_return= self._serial_protocol.get_Qr_Data(data_protocol[:-2])
-        if not to_return:
-            self.__configure = 5 if self.__configure != 5 else 1
-            self.set_configure(configure=self.__configure)
-            to_return= self._serial_protocol.get_Qr_Data(data_protocol[:-2])
-            return to_return
-        else:
-            return to_return
-    
+    def ver_serial(self):
+        if self._data != None :
+            self._did_read = False
+        
+        #else:
+        #   self._did_read = DEC.NOT_PROT
+        pass
+
     def rec(self):
         """
         This function enter a While loop until some data is read.
@@ -92,37 +85,50 @@ class Just_Read ():
         self._serial.reset_output_buffer()
         self._serial.set_input_flow_control(True)
         
-        self._did_read = True
+        self._did_read = False
         
-        try:
-            while self.__isRun:
-                    self._data=self._serial.read(self._serial.in_waiting)
-                    if self._data:
-                        while (self._did_read ) and (self._did_read != DEC.NOT_QR_PROT) :
-                            self._did_read = self._serial_protocol.read_Qr(self._data[:-2])
-                            time.sleep(0.1)
-                            self._data = self._data + self._serial.read(self._serial.in_waiting)
+        #try:
+        while self.__isRun:
+                self._data=self._serial.read() 
+                #x = ser.read()          # read one byte
+                #s = ser.read(65)        # read up to ten bytes (timeout)
+                #line = ser.readline()   # read a '\n' terminated line
+                #b = ser.read_all()
+                #c = ser.readall()
+                #self._serial.in_waiting
+                if self._data:
+                    while (not self._did_read ) and (self._did_read != DEC.NOT_PROT) :
+                        self.ver_serial()
+                        #self._did_read = self._serial_protocol.read_Qr(self._data[:-2])
+                        time.sleep(0.1)
+                        self._data = self._data + self._serial.read(self._serial.in_waiting)
 
-                        self._serial.reset_input_buffer()
-                        self._serial.reset_output_buffer()
+                    self._serial.reset_input_buffer()
+                    self._serial.reset_output_buffer()
 
-                        if not self._did_read:
-                            print (CONS.bcolors.OKGREEN+"--Protocolo Succesfully readed--"+CONS.bcolors.ENDC)
+                    if self._did_read:
+                        print (CONS.bcolors.OKGREEN+"--Serial Succesfully readed--")
+                        print ("{}".format(self._data)+CONS.bcolors.ENDC)
+                        
+                        if self._data < 0 :
+                            return False
+                        else :
                             return self._data
 
-                        elif self._did_read == DEC.NOT_QR_PROT :
-                            print ("QR with NONE Protocol")
-                            logger.error('SERIAL_MODULE_INFO NO_PROTOCOL')
-                            logger.error('{}'.format(self._data))
-                            return False
+                    elif self._did_read == DEC.NOT_PROT :
+                        print (" NONE Serial Prot")
+                        return False
+                else :
+                    return 0
 
+        """
         except Exception as e:
-            print ("Error Camara Serial: {}".format(e))            
+            print (CONS.bcolors.FAIL+"Error Get Serial: {}".format(e)+CONS.bcolors.ENDC)            
             self._serial.reset_input_buffer()
             self._serial.reset_output_buffer()
-            logger.error('SERIAL_MODULE_ERROR THREAD_READING {}'.format(e))
+            #logger.error('SERIAL_MODULE_ERROR THREAD_READING {}'.format(e))
             return False
-
+        """
 class USB_Serial():
     """
     This class Implement the serial communication in order to read a serial 
@@ -188,10 +194,10 @@ class USB_Serial():
 
 if __name__ == '__main__':
    
+    # Test Just reading serial Port
+    Serial_A = Just_Read()
     while True:
-        # Test Just reading serial Port
-        Serial_A = Just_Read()
         leido = Serial_A.rec()
-        print (Serial_A.get_decoded(leido))
+        print (leido)
 
 #https://pyserial.readthedocs.io/en/latest/pyserial_api.html

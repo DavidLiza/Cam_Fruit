@@ -2,23 +2,44 @@
 Configuracion Ideal de resolucion :
 1920 x 1080
 
-
 Agregar al final el config.txt
 
+# uncomment this if your display has a black border of unused pixels visible
+# and your display can output without overscan
+disable_overscan=1
+
+#dtoverlay=vc4-fkms-v3d
+
+hdmi_enable_4kp60=1
+
+# NOOBS Auto-generated Settings:
+start_x=1
+disable_touchscreen=0
+
+#gpu_mem=92
+
 max_usb_current=1
+
 hdmi_force_hotplug=1
-config_hdmi_boost=7
+
+config_hdmi_boost=10
+
+# Si esto queda mal configurado puede afectar el servicio de connexiond e la red
 hdmi_group=2
-hdmi_mode=87
+hdmi_mode=82
 hdmi_drive=1
-display_rotate=0
-hdmi_cvt 1024 600 60 6 0 0 0
+
+#framebuffer_width=1920
+#framebuffer_height=1080
+
+hdmi_cvt 1920 1080 50 6 0 0 0
+enable_uart=1
+
+
 
 http://www.lcdwiki.com/7inch_HDMI_Display-C
 
 ----------------------------------------------------------
-
-
 
 Mas configurcion 
 https://www.circuitbasics.com/raspberry-pi-touchscreen-calibration-screen-rotation/

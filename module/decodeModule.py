@@ -17,7 +17,7 @@ except:
 
 logger = log.configure_logger('default')
 key = b"Identica6045500*"
-
+NOT_PROT = 3
 
 def __decodeBase64(data):
     try:

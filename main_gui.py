@@ -25,7 +25,7 @@ import py_compile                           #To enable wich file must be compile
 import threading                            #To create threads
 import signals  
 import signal                               #Used to enable the key interrupt.
-
+import base64
 
 import barcode
 import urllib.request   as url
@@ -37,11 +37,13 @@ from   datetime         import datetime      #To get the moment when QR is scann
 from   PIL              import Image, ImageTk
 from   io               import BytesIO
 
-import module.constants as CONS
+import module.constants         as CONS
+import module.serial_bascula    as SER
 import module.decodeModule      as decM    #To desencipt the QR information 
-import module.gpioModule        as LEDS    #To enable and play GPIOS connected
 import module.my_requests       as API    #To make the request to the servers
 import module.databaseConsume   as SQL     #To consum the database 
+#import module.gpioModule        as LEDS    #To enable and play GPIOS connected
+#import module.initial_config    as CONF    #To set first time configu8ration device
 
 #Salidas del Rapsberry :
 # - Salida para los Sensores
@@ -58,6 +60,9 @@ screen_width     = 0
 
 canas_exists     = False
 estibas_exists   = False
+
+# Objeto de comunicacion Serial 
+lector_serial = SER.Just_Read()
 
 """
 State_Configuration = Value('i',-1)
@@ -156,8 +161,11 @@ class Connection_Conf():
             popupmsg(title="Estado de conexion" ,msg = "Desconecatdo")
 
     def check_API(self):
-        #API.
-        popupmsg(title="Estado de conexion" ,msg ="AYIOH")
+        api_data = API.API_verify()
+        if api_data:
+            popupmsg(title="Estado API" ,msg ="Conectado {} ".format(api_data["status_code"]))
+        else:
+            popupmsg(title="Estado API" ,msg ="API DESCONECTADO")
 
 
 # *********************************************************
@@ -466,6 +474,10 @@ class Add_WIFI(tk.Frame):
                 self.wifi_error(error= "Wifi already exists")
                 return 
             __wpa_config = True
+            #os.system('sudo ip link set wlan0 down')
+            #os.system('sudo ip link set wlan0 up')
+            #os.system('sudo ifconfig wlan0 up')
+            #rfkill list
 
         except Exception as e:
             self.wifi_error(error= "Wifi already exists")
@@ -638,7 +650,6 @@ class Admin_wifis(tk.Frame):
         popupmsg(title="Error Wifi" , msg=error)
 
     def get_redes (self):
-            
         accion = """SELECT ssid FROM wifis;"""
         __localdb = SQL.LocalDBConsumption(databasename= "device.db")
         __redes   = __localdb.consult(lite_consult=accion , modification=False)
@@ -867,12 +878,6 @@ class Config_Canas(tk.Frame):
             canas_exists = True
 
     def update_frame(self):
-        # -- Clear Widgets --
-        self.lista_box.selection_clear(0, tk.END)
-        self.lista_box.delete(0, tk.END)
-        self.__entry_can.config(state='normal')
-        self.__entry_can.delete(0,tk.END)
-        self.__entry_can.config(state='disabled')
 
         self.__get_canastillas()
         if not self.__canastillas :
@@ -892,7 +897,13 @@ class Config_Canas(tk.Frame):
 
         else : 
             try:
+                # -- Clear Widgets --
                 self.lista_box.selection_clear(0, tk.END)
+                self.lista_box.delete(0, tk.END)
+                self.__entry_can.config(state='normal')
+                self.__entry_can.delete(0,tk.END)
+                self.__entry_can.config(state='disabled')
+
             except :
                 print ("Seleccione este ")
             self.show_cont()
@@ -938,6 +949,7 @@ class Config_Estibas(tk.Frame):
     def show_cont (self ):
 
         if  estibas_exists and not self.__pinted : 
+            print ("Eeeeeh si ? ")
             self.label_estibas = ttk.Label(self, text="Estibas Guardadas: ", style="BlackSubTittle.TLabel")
             self.label_estibas.place(relx=0.08 , rely=0.25)
 
@@ -1016,13 +1028,6 @@ class Config_Estibas(tk.Frame):
     
     def update_frame(self):
         
-        # -- Clear Widgets --
-        self.lista_box.selection_clear(0, tk.END)
-        self.lista_box.delete(0, tk.END)
-        self.__entry_can.config(state='normal')
-        self.__entry_can.delete(0,tk.END)
-        self.__entry_can.config(state='disabled')
-
         self.__get_estibas()
         if not self.__estibas :
             label_db = ttk.Label(self, text="Sin Estibas", style="BlackSubTittle.TLabel")
@@ -1040,7 +1045,12 @@ class Config_Estibas(tk.Frame):
         else : 
             
             try:
+                # -- Clear Widgets --
                 self.lista_box.selection_clear(0, tk.END)
+                self.lista_box.delete(0, tk.END)
+                self.__entry_can.config(state='normal')
+                self.__entry_can.delete(0,tk.END)
+                self.__entry_can.config(state='disabled')
             except:
                 print ("Doone")
             self.show_cont()
@@ -1095,9 +1105,17 @@ class Weigh_Initial(tk.Frame):
 
         num_canastillas = ttk.Label(self, text="Cantidad: ", style="BlackSubTittle.TLabel")
         num_canastillas.place(relx=0.08 , rely=0.75)
+        
+        
+        self.canastilla_sel = ttk.Label(self, text=" ", style="BlackSubTittle.TLabel")
+        self.canastilla_sel.place(relx=0.08 , rely=0.7)
 
         num_palets      = ttk.Label(self, text="Cantidad: ", style="BlackSubTittle.TLabel")
         num_palets.place(relx=0.50 , rely=0.75)
+
+        self.palets_sel = ttk.Label(self, text=" ", style="BlackSubTittle.TLabel")
+        self.palets_sel.place(relx=0.5 , rely=0.7)
+
 
         # -- Entryes Cantidad --
         self.__entry_can = tk.Entry(self ,font="Aharoni 20" )
@@ -1135,19 +1153,20 @@ class Weigh_Initial(tk.Frame):
         self.get_canastillas()
         self.get_palets()
         
-        variable_can = tk.StringVar(self)
-        variable_can.set(self.__canas_list[0])
+        self.variable_can = tk.StringVar(self)
+        self.variable_can.set(self.__canas_list[0])
 
-        variable_pal = tk.StringVar(self)
-        variable_pal.set(self.__pal_list[0])
+        self.variable_pal = tk.StringVar(self)
+        self.variable_pal.set(self.__pal_list[0])
 
-        opt_canastillas = tk.OptionMenu(self, variable_can, *self.__canas_list)
+        opt_canastillas = tk.OptionMenu(self, self.variable_can, *self.__canas_list , 
+                                        command= lambda : self.callback_can() )
         opt_canastillas.config(width=40, font=Text_font) # ---
         menu_can = self.nametowidget(opt_canastillas.menuname)
         menu_can.config( font=Text_font) # set the drop down menu font
         opt_canastillas.place(relx=0.08 , rely=0.3 )
 
-        opt_palets = tk.OptionMenu(self, variable_pal, *self.__pal_list)
+        opt_palets = tk.OptionMenu(self, self.variable_pal, *self.__pal_list)
         opt_palets.config(width=40, font=Text_font)
         menu_pal = self.nametowidget(opt_palets.menuname)
         menu_pal.config(font=Text_font) # set the drop down menu font
@@ -1161,8 +1180,30 @@ class Weigh_Initial(tk.Frame):
 
 
         button_start = ttk.Button(self, text="Iniciar",  style="Secundary.TButton" ,
-                            command=lambda: self.__controller.show_frame(Weigh_Result))
+                            command=lambda: self.check_data())
         button_start.place(relx=0.15,rely=0.85 ,    height=100)
+        
+        #self.variable_can.trace("w", self.callback_can)
+        #self.variable_pal.trace("w", self.callback_pal)
+
+
+    def callback_can(self):
+        print ("Inside Callback Canastilla ")
+        valor = self.variable_can.get()
+        print (valor )
+        self.canastilla_sel.configure(text="Select: ")
+    
+    def callback_pal(self):
+        self.palets_sel.configure(text="Select: {}".format(self.variable_pal.get()))
+
+    def check_data(self):
+        if self.__counter_can > 0 and self.__counter_pal > 0 :
+            peso_cont = self.__counter_pal*(1) + self.__counter_can*(1)
+            print (peso_cont)
+            self.__controller.show_frame(Weigh_Result)
+        else:
+            print (CONS.bcolors.FAIL+ "No enough contenmedores" + CONS.bcolors.ENDC)
+
 
     def onClick_can(self, action=True):
         if action:
@@ -1196,9 +1237,7 @@ class Weigh_Initial(tk.Frame):
             self.__controller.show_frame(StartPage)
         else:
             for canas in __canastillas:
-                print (canas)
-                self.__canas_list.append("Canastilla1")
-                self.__canas_list.append("Canastilla2")
+                self.__canas_list.append("{}".format(canas))
 
     def get_palets (self):
                    
@@ -1210,11 +1249,25 @@ class Weigh_Initial(tk.Frame):
             self.__controller.show_frame(StartPage)
         else:
             for pal in __palets:
-                print (pal)
-                self.__pal_list.append("Palet1")
-                self.__pal_list.append("Palet2")
+                self.__pal_list.append("{}".format(pal))
 
     def update_frame(self):
+
+        try:
+            self.__entry_can.config(state='normal')
+            self.__entry_can.delete(0,tk.END)
+            self.__entry_can.config(state='disabled')
+            
+            self.__entry_pal.config(state='normal')
+            self.__entry_pal.delete(0,tk.END)
+            self.__entry_pal.config(state='disabled')
+            
+            self.opt_canastillas.selection_clear(0, tk.END)
+            self.opt_canastillas.delete(0, tk.END)
+
+        except Exception as e:
+            print (CONS.bcolors.FAIL+"Error update Frame"+CONS.bcolors.ENDC)
+
         print ("Actualizacion del frame Weight INital  ")
 
 class Weigh_Result(tk.Frame):
@@ -1281,7 +1334,8 @@ class Weigh_Result(tk.Frame):
         self.label_code.image = image_home
 
     def __get_weights(self):
-        return None
+        
+        
         return 123
 
     def __final_cam (self):
@@ -1331,10 +1385,15 @@ class Weigh_Result(tk.Frame):
                 self.label_code.destroy()
             
             self.labeltitle_err = ttk.Label(self, text="¡Proceso No Completado!", style="RedSubTittle.TLabel")
-            self.labeltitle_err.place(relx=0.4 , rely=0.25)
+            self.labeltitle_err.place(relx=0.38 , rely=0.25)
 
-            self.label_error = ttk.Label(self, text="Error En proceso \n Retire elementos ajenos al proceso de pesado", style="BlackSubTittle.TLabel")
-            self.label_error.place(relx=0.445 , rely=0.3)
+            self.label_error = ttk.Label(self, text="Error En proceso ", style="BlackSubTittle.TLabel")
+            self.label_error.place(relx=0.445 , rely=0.4)
+
+            self.label_error = ttk.Label(self, text="Retire elementos ajenos al proceso de pesado ", style="BlackSubTittle.TLabel")
+            self.label_error.place(relx=0.2 , rely=0.45)
+
+
 
         #self.__gen_barcode()
 
@@ -1418,11 +1477,15 @@ def config_bluetooth( ):
     popup_blue.mainloop()
 
 def config_popup( frames_controller , title="Configurar __" , tipo="CanPalTo" ):
-    def save_in_db( ):
+    def save_in_db():
         done =  False
         try:
             if id_cont.get() and name_c.get() and weight.get() :
-                            
+                
+                peso = weight.get()
+                if peso == "NO PESO" or peso <= 0 :
+                    raise Exception("No peso")
+
                 accion = """INSERT INTO {} (code_id , name , peso ) 
                             VALUES         ({},'{}',{})""".format(tipo,id_cont.get(),name_c.get(),weight.get())
                 __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
@@ -1448,9 +1511,20 @@ def config_popup( frames_controller , title="Configurar __" , tipo="CanPalTo" ):
                 popupmsg(title="ERROR" , msg = "Error en datos")
 
     def get_cont_weight ( the_entry ):
+        global lector_serial
+        peso = lector_serial.rec()
         the_entry.config(state='normal')
-        the_entry.delete(0,tk.END)
-        the_entry.insert(0,"666")
+        if peso == 0 :       
+            the_entry.delete(0,tk.END)
+            the_entry.insert(0,"NO PESO")
+        elif not peso :       
+            the_entry.delete(0,tk.END)
+            the_entry.insert(0,"...")
+        elif peso:
+            
+            the_entry.delete(0,tk.END)
+            the_entry.insert(0,"{}".format(peso))
+
         the_entry.config(state='disabled')
 
     popup = tk.Tk()
@@ -1476,7 +1550,7 @@ def config_popup( frames_controller , title="Configurar __" , tipo="CanPalTo" ):
     weight = tk.Entry(popup , font=Pop_Up_Font_R , state='disabled')
     weight.grid(row=6 , column=1 , padx=10 , pady=10 , ipady=30)
 
-    pesar = tk.Button(popup,text="Pesar", command = lambda: get_cont_weight(weight) )
+    pesar = tk.Button(popup,text="Pesar (Kg)", command = lambda: get_cont_weight(weight) )
     pesar.config( font=Pop_Up_Font_R , height=2 , width=10  )
     pesar.grid(row = 6,column = 2 , padx=18 )
 
