@@ -30,4 +30,12 @@ print("b : {}".format(b.decode("utf-8")))
 # cuenta de ahorros, # 50632127704
 
 
+#x = ser.read()          # read one byte
+#s = ser.read(65)        # read up to ten bytes (timeout)
+#line = ser.readline()   # read a '\n' terminated line
+#b = ser.read_all()
+#c = ser.readall()
+#self._serial.in_waiting
+
+
 #yPO6cSaIQTpTkCnIqeIPLMnkkXQ1gytlXGBSoismMiZBRPfAm9ctalPr4AiujPpC

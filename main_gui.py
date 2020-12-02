@@ -39,7 +39,7 @@ from   io               import BytesIO
 
 import module.constants         as CONS
 import module.serial_bascula    as SER
-import module.decodeModule      as decM    #To desencipt the QR information 
+#import module.decodeModule      as decM    #To desencipt the QR information 
 import module.my_requests       as API    #To make the request to the servers
 import module.databaseConsume   as SQL     #To consum the database 
 #import module.gpioModule        as LEDS    #To enable and play GPIOS connected
@@ -57,6 +57,7 @@ State_config     = False
 State_connection = False
 screen_height    = 0
 screen_width     = 0
+peso_cont        = 0
 
 canas_exists     = False
 estibas_exists   = False
@@ -90,6 +91,7 @@ signal.signal(signal.SIGTERM, keyboardInterruptHandler)
 Title_font   = ("Aharoni", 50 , "bold")
 Subtitle_font= ("Aharoni", 30 , "bold")
 Text_font    = ("Aharoni", 20 )
+Text_font_si = ("Aharoni", 40 )
 
 Pop_Up_Font_T = ("Aharoni", 30 , "bold")
 Pop_Up_Font_R = ("Aharoni", 20 )
@@ -110,6 +112,12 @@ if index_module != -1 :
     cache_folder = full_path[:index_module]+'cache'
 else :
     cache_folder = full_path + '/cache'
+
+def reboot():
+    os.system("sudo reboot now")
+
+def shutdown():
+    os.system("sudo shutdown now")
 
 def call_keyboard (event) :
     print ("Call To Keyboiard")
@@ -166,6 +174,14 @@ class Connection_Conf():
             popupmsg(title="Estado API" ,msg ="Conectado {} ".format(api_data["status_code"]))
         else:
             popupmsg(title="Estado API" ,msg ="API DESCONECTADO")
+
+    def check_API_image(self):
+        api_data = API.API_verify_image()
+        if api_data:
+            popupmsg(title="Estado API" ,msg ="Imagen Enviada ")
+        else:
+            popupmsg(title="Estado API" ,msg ="API DESCONECTADO")
+            
 
 
 # *********************************************************
@@ -252,6 +268,13 @@ class GUI(tk.Tk):
         filemenu.add_separator()
         filemenu.add_command(label="Exit",          font=Text_font,  command=quit)
         filemenu.add_separator()
+        
+        filemenu.add_command(label="reboot ",          font=Text_font,  command= lambda : reboot())
+        filemenu.add_separator()
+
+        filemenu.add_command(label="shutdown ",          font=Text_font,  command= lambda : shutdown())
+        filemenu.add_separator()
+
         menubar.add_cascade (label="System",   menu=filemenu)
 
         menubar.add_command(label="\u0020", activebackground=menubar.cget("background"))
@@ -266,6 +289,8 @@ class GUI(tk.Tk):
         exchangeChoice.add_command(label="Verifica Conexión",font= Text_font, command=lambda: self.class_connection.check_connection())
         exchangeChoice.add_separator()
         exchangeChoice.add_command(label="Verifica API",     font= Text_font, command=lambda: self.class_connection.check_API() )
+        exchangeChoice.add_separator()
+        exchangeChoice.add_command(label="Verifica API Image",     font= Text_font, command=lambda: self.class_connection.check_API_image() )
         exchangeChoice.add_separator()
         exchangeChoice.add_command(label="Admin Bluetooths",        font= Text_font, command=lambda: config_bluetooth() )
         menubar.add_cascade(label="Conexiónes", menu=exchangeChoice)
@@ -1117,6 +1142,10 @@ class Weigh_Initial(tk.Frame):
         self.palets_sel.place(relx=0.5 , rely=0.7)
 
 
+        self.__entry_lec = tk.Entry(self ,font="Aharoni 20" )
+        self.__entry_lec.insert(0," ")
+        self.__entry_lec.place(height= 60, width= 400 , relx=0.55 , rely=0.055)
+
         # -- Entryes Cantidad --
         self.__entry_can = tk.Entry(self ,font="Aharoni 20" )
         self.__entry_can.insert(0," ")
@@ -1197,11 +1226,13 @@ class Weigh_Initial(tk.Frame):
         self.palets_sel.configure(text="Select: {}".format(self.variable_pal.get()))
 
     def check_data(self):
+        global peso_cont
         if self.__counter_can > 0 and self.__counter_pal > 0 :
             peso_cont = self.__counter_pal*(1) + self.__counter_can*(1)
             print (peso_cont)
             self.__controller.show_frame(Weigh_Result)
         else:
+            popupmsg(title="ERROR" , msg = "Informacion insuficiente")
             print (CONS.bcolors.FAIL+ "No enough contenmedores" + CONS.bcolors.ENDC)
 
 
@@ -1254,6 +1285,9 @@ class Weigh_Initial(tk.Frame):
     def update_frame(self):
 
         try:
+            self.__counter_pal= 0
+            self.__counter_can= 0 
+
             self.__entry_can.config(state='normal')
             self.__entry_can.delete(0,tk.END)
             self.__entry_can.config(state='disabled')
@@ -1332,32 +1366,29 @@ class Weigh_Result(tk.Frame):
         self.label_code = tk.Label(self, image = image_home, borderwidth=0)
         self.label_code.place(relx= 0.34 , rely= 0.41)
         self.label_code.image = image_home
-
-    def __get_weights(self):
         
-        
-        return 123
 
     def __final_cam (self):
-        with open('cache/limonsin.png', 'rb') as file:
-            image = file.read()
-            image = base64.b64encode(image)  
-            print (image)
+        
+        global peso_cont
+        imagen_tomada = API.getImage()
+        peso_final = self.__weight - peso_cont
 
-            API.request_Frubana(basekts     = 66 , 
+        API.request_Frubana(    basekts     = 66 , 
                                 product     ="product2", 
                                 state       = "state2", 
                                 num_pallets = 67 , 
                                 pallets_id  = "palet2",
-                                abs_weight  = 42 ,
-                                final_weight= 36 , 
-                                image=image)
+                                abs_weight  = self.__weight ,
+                                final_weight= peso_final , 
+                                image=imagen_tomada)
 
 
     def update_frame(self):
+        global lector_serial
+
         print ("Actualizacion del frame Weight Result  ")
-        
-        self.__weight = self.__get_weights()
+        self.__weight = lector_serial.rec()
         if self.__weight :
             self.__final_cam()
             try:
@@ -1391,7 +1422,7 @@ class Weigh_Result(tk.Frame):
             self.label_error.place(relx=0.445 , rely=0.4)
 
             self.label_error = ttk.Label(self, text="Retire elementos ajenos al proceso de pesado ", style="BlackSubTittle.TLabel")
-            self.label_error.place(relx=0.2 , rely=0.45)
+            self.label_error.place(relx=0.3 , rely=0.45)
 
 
 
