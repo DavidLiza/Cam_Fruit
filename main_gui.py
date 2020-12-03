@@ -491,9 +491,8 @@ class Add_WIFI(tk.Frame):
             __wpa_config = True
             #os.system('sudo ip link set wlan0 down')
             #os.system('sudo ip link set wlan0 up')
-
-            #os.system('sudo ifconfig wlan0 down')
-            #os.system('sudo ifconfig wlan0 up')
+            os.system('sudo ifconfig wlan0 down')
+            os.system('sudo ifconfig wlan0 up')
             #rfkill list
 
         except Exception as e:
@@ -1107,15 +1106,17 @@ class Weigh_Initial(tk.Frame):
 
         label_title = ttk.Label(self, text="Proceso de Pesaje ", style="Tittle.TLabel")
         label_title.place(relx=0.08 , rely=0.055)
-        label_subtitle = ttk.Label(self, text="Seleccione los contenedores: ", style="BlackSubTittle.TLabel")
-        label_subtitle.place(relx=0.08 , rely=0.135)
+        ttk.Label(self, text="Codigo Producto", style="Subtext_black.TLabel").place(relx=0.08 , rely=0.135)
 
+
+        label_subtitle = ttk.Label(self, text="Seleccione los contenedores: ", style="BlackSubTittle.TLabel")
+        label_subtitle.place(relx=0.08 , rely=0.5)
     
         label_canastillas = ttk.Label(self, text="Tipo de canastilla: ", style="BlackSubTittle.TLabel")
-        label_canastillas.place(relx=0.08 , rely=0.25)
+        label_canastillas.place(relx=0.08 , rely=0.20)
 
         label_palets = ttk.Label(self, text="Tipo de Estibas: ", style="BlackSubTittle.TLabel")
-        label_palets.place(relx=0.50 , rely=0.25)
+        label_palets.place(relx=0.50 , rely=0.20)
 
         self.__counter_can = 0
         self.__counter_pal = 0
@@ -1123,18 +1124,24 @@ class Weigh_Initial(tk.Frame):
         num_canastillas = ttk.Label(self, text="Cantidad: ", style="BlackSubTittle.TLabel")
         num_canastillas.place(relx=0.08 , rely=0.75)
         
-        
-        self.canastilla_sel = ttk.Label(self, text=" ", style="BlackSubTittle.TLabel")
-        self.canastilla_sel.place(relx=0.08 , rely=0.7)
 
         num_palets      = ttk.Label(self, text="Cantidad: ", style="BlackSubTittle.TLabel")
         num_palets.place(relx=0.50 , rely=0.75)
+
+        
+        self.canastilla_sel = ttk.Label(self, text=" ", style="BlackSubTittle.TLabel")
+        self.canastilla_sel.place(relx=0.08 , rely=0.7)
 
         self.palets_sel = ttk.Label(self, text=" ", style="BlackSubTittle.TLabel")
         self.palets_sel.place(relx=0.5 , rely=0.7)
 
 
         # -- Entryes Cantidad --
+        
+        self.__entry_product = tk.Entry(self ,font="Aharoni 20" )
+        self.__entry_product.insert(0," ")
+        self.__entry_product.place(height= 60, width= 450 , relx=0.6 , rely=0.135)
+
         self.__entry_can = tk.Entry(self ,font="Aharoni 20" )
         self.__entry_can.insert(0," ")
         self.__entry_can.config(state="disabled")
@@ -1164,30 +1171,25 @@ class Weigh_Initial(tk.Frame):
 
 
         # -- Option Menu --
-        self.__canas_list  = ["TTEST1" ] 
-        self.__pal_list    = ["Test1" ] 
+    
+        self.lista_box_can = tk.Listbox( self , 
+                                highlightcolor="#F8AC18" , 
+                                highlightbackground="#ffffff",
+                                selectborderwidth=5 ,
+                                exportselection = False, 
+                                font=Pop_Up_Font_R)
+        self.lista_box_can.place(height= 300, width= 600 , relx =0.08 , rely = 0.3 )
+        self.lista_box_can.bind('<<ListboxSelect>>', self.callback_can)
 
-        self.get_canastillas()
-        self.get_palets()
-        
-        self.variable_can = tk.StringVar(self)
-        self.variable_can.set(self.__canas_list[0])
+        self.lista_box_pal = tk.Listbox( self , 
+                                highlightcolor="#F8AC18" , 
+                                highlightbackground="#ffffff",
+                                selectborderwidth=5 ,
+                                exportselection = False, 
+                                font=Pop_Up_Font_R)
+        self.lista_box_pal.place(height= 300, width= 600 , relx =0.5 , rely = 0.3 )
+        self.lista_box_pal.bind('<<ListboxSelect>>', self.callback_pal)
 
-        self.variable_pal = tk.StringVar(self)
-        self.variable_pal.set(self.__pal_list[0])
-
-        opt_canastillas = tk.OptionMenu(self, self.variable_can, *self.__canas_list , 
-                                        command= lambda : self.callback_can() )
-        opt_canastillas.config(width=40, font=Text_font) # ---
-        menu_can = self.nametowidget(opt_canastillas.menuname)
-        menu_can.config( font=Text_font) # set the drop down menu font
-        opt_canastillas.place(relx=0.08 , rely=0.3 )
-
-        opt_palets = tk.OptionMenu(self, self.variable_pal, *self.__pal_list)
-        opt_palets.config(width=40, font=Text_font)
-        menu_pal = self.nametowidget(opt_palets.menuname)
-        menu_pal.config(font=Text_font) # set the drop down menu font
-        opt_palets.place(relx=0.5 , rely=0.3)
 
         # -- Buttons --
         button_home = ttk.Button(self, image=image_home  , style="Principal.TButton" , # background="white" ,
@@ -1200,19 +1202,15 @@ class Weigh_Initial(tk.Frame):
                             command=lambda: self.check_data())
         button_start.place(relx=0.15,rely=0.85 ,    height=100)
         
-        #self.variable_can.trace("w", self.callback_can)
-        #self.variable_pal.trace("w", self.callback_pal)
 
-
-    def callback_can(self):
-        print ("Inside Callback Canastilla ")
-        valor = self.variable_can.get()
-        print (valor )
-        self.canastilla_sel.configure(text="Select: ")
+    def callback_can(self,evt):
+        index_value = int(self.lista_box_can.curselection()[0])
+        self.canastilla_sel['text'] = str(w.get(index_value))
     
-    def callback_pal(self):
-        self.palets_sel.configure(text="Select: {}".format(self.variable_pal.get()))
-
+    def callback_pal(self,evt):
+        index_value = int(self.lista_box_can.curselection()[0])
+        self.pal['text'] = str(w.get(index_value))
+    
     def check_data(self):
         if self.__counter_can > 0 and self.__counter_pal > 0 :
             peso_cont = self.__counter_pal*(1) + self.__counter_can*(1)
@@ -1220,6 +1218,22 @@ class Weigh_Initial(tk.Frame):
             self.__controller.show_frame(Weigh_Result)
         else:
             print (CONS.bcolors.FAIL+ "No enough contenmedores" + CONS.bcolors.ENDC)
+
+
+    def __final_cam (self):
+        with open('cache/limonsin.png', 'rb') as file:
+            image = file.read()
+            image = base64.b64encode(image)  
+            print (image)
+
+            API.request_Frubana(basekts     = 66 , 
+                                product     ="product2", 
+                                state       = "state2", 
+                                num_pallets = 67 , 
+                                pallets_id  = "palet2",
+                                abs_weight  = 42 ,
+                                final_weight= 36 , 
+                                image=image)
 
 
     def onClick_can(self, action=True):
@@ -1248,29 +1262,46 @@ class Weigh_Initial(tk.Frame):
             
         accion = """SELECT * FROM canastillas"""
         __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
-        __canastillas = __localdb.consult(lite_consult=accion , modification=False)
+        self.__canastillas = __localdb.consult(lite_consult=accion , modification=False)
         __localdb.close_connection()
-        if not __canastillas:
+
+        if not self.__canastillas:
+            popupmsg(title="Error Estibas" , msg="Sin Estibas")
             self.__controller.show_frame(StartPage)
         else:
-            for canas in __canastillas:
-                self.__canas_list.append("{}".format(canas))
+            for canas in self.__canastillas:
+                self.lista_box_can.insert(tk.END,canas[1])
 
     def get_palets (self):
                    
         accion = """SELECT * FROM estibas """
         __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
-        __palets = __localdb.consult(lite_consult=accion , modification=False)
+        self.__palets = __localdb.consult(lite_consult=accion , modification=False)
         __localdb.close_connection()
-        if not __palets:
+        if not self.__palets:
+            popupmsg(title="Error Estibas" , msg="Sin Estibas")
             self.__controller.show_frame(StartPage)
         else:
-            for pal in __palets:
-                self.__pal_list.append("{}".format(pal))
+            for palets in self.__palets:
+                self.lista_box_pal.insert(tk.END,palets[1])
 
-    def update_frame(self):
-
+    def clear_widgets(self):
         try:
+            # -- Clear others -- 
+            self.pal['text'] = ""
+            self.canastilla_sel['text'] = ""
+    
+            # -- Clear Listbox --
+        
+            self.lista_box_can.selection_clear(0, tk.END)
+            self.lista_box_can.delete(0, tk.END)
+            
+            self.lista_box_pal.selection_clear(0, tk.END)
+            self.lista_box_pal.delete(0, tk.END)
+
+            # -- Clear  Entrys --
+            self.__entry_product.delete(0,tk.END)
+
             self.__entry_can.config(state='normal')
             self.__entry_can.delete(0,tk.END)
             self.__entry_can.config(state='disabled')
@@ -1278,14 +1309,18 @@ class Weigh_Initial(tk.Frame):
             self.__entry_pal.config(state='normal')
             self.__entry_pal.delete(0,tk.END)
             self.__entry_pal.config(state='disabled')
-            
-            self.opt_canastillas.selection_clear(0, tk.END)
-            self.opt_canastillas.delete(0, tk.END)
-
+        
         except Exception as e:
             print (CONS.bcolors.FAIL+"Error update Frame"+CONS.bcolors.ENDC)
+            print (e)
 
-        print ("Actualizacion del frame Weight INital  ")
+    def update_frame(self):
+        self.clear_widgets()
+        self.get_palets()
+        self.get_canastillas()
+
+
+
 
 class Weigh_Result(tk.Frame):
 
@@ -1340,6 +1375,15 @@ class Weigh_Result(tk.Frame):
         my_code2 = barcode.EAN13(number , writer=barcode.writer.ImageWriter())
         my_code2.save("new_code")
         
+
+        # -- Conversion a Binario -- #
+        # image_normal = CAMARA.get_image()
+        # data = pygame.image.tostring(image_normal, 'RGBA')
+        # img = Image.frombytes('RGBA',IMG_SIZE, data)
+        # buffer = BytesIO()
+        # img.save(buffer,'png')
+
+
         image_home = Image.open('new_code.png')
         width, height = image_home.size
         print ("Size of image {} {} ".format(width,height))
@@ -1350,46 +1394,24 @@ class Weigh_Result(tk.Frame):
         self.label_code.place(relx= 0.34 , rely= 0.41)
         self.label_code.image = image_home
 
-    def __get_weights(self):
-        
-        
-        return 123
-
-    def __final_cam (self):
-        with open('cache/limonsin.png', 'rb') as file:
-            image = file.read()
-            image = base64.b64encode(image)  
-            print (image)
-
-            API.request_Frubana(basekts     = 66 , 
-                                product     ="product2", 
-                                state       = "state2", 
-                                num_pallets = 67 , 
-                                pallets_id  = "palet2",
-                                abs_weight  = 42 ,
-                                final_weight= 36 , 
-                                image=image)
-
-
     def update_frame(self):
-        print ("Actualizacion del frame Weight Result  ")
-        
-        self.__weight = self.__get_weights()
-        if self.__weight :
-            self.__final_cam()
+        global proceso_terminado
+        global peso_final
+
+        if proceso_terminado :
             try:
                 self.labeltitle_res.destroy()
                 self.label_peso_total.destroy()
             except :
-                print (CONS.bcolors.FAIL+"ERRRRRDA"+CONS.bcolors.ENDC)
+                print (CONS.bcolors.FAIL+"Primer correcto"+CONS.bcolors.ENDC)
 
             self.labeltitle_res = ttk.Label(self, text="¡Proceso Exitoso!", style="GreenSubTittle.TLabel")
             self.labeltitle_res.place(relx=0.4 , rely=0.25)
 
             self.label_peso_total = ttk.Label(self, text="Peso Final del producto:", style="BlackSubTittle.TLabel")
-            self.label_peso_total.place(relx=0.445 , rely=0.3)
+            self.label_peso_total.place(relx=0.35 , rely=0.3)
 
-            self.label_peso_total_val = ttk.Label(self, text="{} Kg".format(self.__weight), style="BlackSubTittle.TLabel")
+            self.label_peso_total_val = ttk.Label(self, text="{} Kg".format(peso_final), style="BlackSubTittle.TLabel")
             self.label_peso_total_val.place(relx=0.46 , rely=0.35)
             self.__pinted = True if self.__gen_barcode() else False
                  
