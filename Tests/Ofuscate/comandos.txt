@@ -1,0 +1,44 @@
+# Ejemplo de ofuscamiento de archivos contenidos en una 
+# carpeta. 
+
+# A continuacion se muestra el arbol :
+
+/path/to/project/
+  main.py
+  singals.py
+  module/
+    mymodules.py
+    otheones.py
+    extras/
+        no_called_for_main.py
+
+
+
+# Crear una carpeta paralela o en el mismo nivel 
+# de donde se encuentra la carpeta contenedora del 
+# Proyecto 
+
+mkdir -p /path/to/ofuscate
+
+
+# Copiar todos los archios a la carpeta final, 
+# because pyarmor don't deal with any data files
+
+cp -a /path/to/project/* /path/to/ofuscate
+
+cd /path/to/project
+
+# Obfuscating all the scripts in the current path recursively, 
+# specify the entry script "wsgi.py"
+# The obfuscate scripts will be save to "/path/to/ofuscate"
+
+pyarmor obfuscate --src="." -r --output=../ofuscate/ main.py
+
+# Con estos pasos ya dberia quedar ofuscado el codigo 
+
+*** NOTA ****
+No importa que un modulo no sea accesible por el modulo 
+principal  el codigo ofuscara toda la informacion 
+encontrada. 
+
+https://pyarmor.readthedocs.io/en/latest/examples.html

@@ -23,7 +23,6 @@ import math
 import multiprocessing 
 import py_compile                           #To enable wich file must be compile
 import threading                            #To create threads
-import signals  
 import signal                               #Used to enable the key interrupt.
 import base64
 
@@ -1150,7 +1149,6 @@ class Weigh_Initial(tk.Frame):
         self.palets_sel = ttk.Label(self, text=" ", style="Subtext.TLabel")
         self.palets_sel.place(relx=0.5 , rely=0.65)
 
-
         self.canastilla_sel_peso = ttk.Label(self, text=" ", style="Subtext.TLabel")
         self.canastilla_sel_peso.place(relx=0.3 , rely=0.65)
 
@@ -1189,7 +1187,6 @@ class Weigh_Initial(tk.Frame):
         men_pal = tk.Button(self, text="-", fg="dark green", bg = "white" , font = Subtitle_font , 
                             command=lambda : self.onClick_pal(action=False))
         men_pal.place(height= 90, width= 90 ,  relx=0.80 , rely=0.745)
-
 
         # -- Option Menu --
     
@@ -1230,12 +1227,14 @@ class Weigh_Initial(tk.Frame):
     def callback_can(self,evt):
         index_value = int(self.lista_box_can.curselection()[0])
         self.__canast_sel = str(self.lista_box_can.get(index_value))
-        self.canastilla_sel['text'] = self.__canast_sel
+        self.canastilla_sel['text']         = self.__canast_sel
+        self.canastilla_sel_peso['text']    = self.__canastillas[index_value][2]
     
     def callback_pal(self,evt):
         index_value = int(self.lista_box_pal.curselection()[0])
         self.__pal_sel = str(self.lista_box_pal.get(index_value))
-        self.palets_sel['text'] = self.__pal_sel 
+        self.palets_sel['text']         = self.__pal_sel 
+        self.palets_sel_peso['text']    = self.__palets[index_value][2]
     
     def check_data(self):
         global lector_serial
@@ -1285,9 +1284,7 @@ class Weigh_Initial(tk.Frame):
     
         self.__controller.show_frame(Weigh_Result)
 
-
-    def __final_cam (self):
-        
+    def __final_cam (self):  
         imagen_captured = API.getImage()
         if not imagen_captured:
             return -1
@@ -1300,7 +1297,6 @@ class Weigh_Initial(tk.Frame):
                             abs_weight      = self.__peso_total ,
                             final_weight    = self.__peso_final , 
                             image           = imagen_captured)
-
 
     def onClick_can(self, action=True):
         if action:
@@ -1324,8 +1320,7 @@ class Weigh_Initial(tk.Frame):
         self.__entry_pal.insert(0,str(self.__counter_pal))
         self.__entry_pal.config(state='disabled')
 
-    def get_canastillas (self):
-            
+    def get_canastillas (self):     
         accion = """SELECT * FROM canastillas"""
         __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
         self.__canastillas = __localdb.consult(lite_consult=accion , modification=False)
@@ -1339,7 +1334,6 @@ class Weigh_Initial(tk.Frame):
                 self.lista_box_can.insert(tk.END,canas[1])
 
     def get_palets (self):
-                   
         accion = """SELECT * FROM estibas """
         __localdb = SQL.LocalDBConsumption(databasename= "contenedores.db")
         self.__palets = __localdb.consult(lite_consult=accion , modification=False)

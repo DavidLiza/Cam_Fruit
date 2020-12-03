@@ -55,12 +55,21 @@ except:
 #***** Sqlite3 *****
 entrada = input (bcolors.HEADER+"Desea instalar (sqlite3) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
+     os.system('sudo pip install pyarmor')
+     os.system('sudo pip3 install pyarmor')
+     
+     
+#***** Pyarmor *****
+entrada = input (bcolors.HEADER+"Desea instalar (pyarmor) : (y/n)"+bcolors.ENDC)
+if entrada == 'y':
   try:
      import sqlite3
-     print ("****** sqlite3 LIBRERIA YA INSTALADA ********")
+     print ("****** Pyarmor LIBRERIA YA INSTALADA ********")
   except:
      os.system('sudo apt-get install sqlite3')
-     
+    
+
+
 #***** VNC *****
 entrada = input (bcolors.HEADER+"Desea instalar (VNC) : (y/n)"+bcolors.ENDC)
 if entrada == 'y':
