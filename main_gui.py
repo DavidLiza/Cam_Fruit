@@ -1354,6 +1354,8 @@ class Weigh_Initial(tk.Frame):
             # -- Clear others -- 
             self.palets_sel['text'] = ""
             self.canastilla_sel['text'] = ""
+            self.palets_sel_peso['text'] = ""
+            self.canastilla_sel_peso['text'] = ""
     
             # -- Clear Listbox --
         
@@ -1382,8 +1384,6 @@ class Weigh_Initial(tk.Frame):
         self.clear_widgets()
         self.get_palets()
         self.get_canastillas()
-
-
 
 
 class Weigh_Result(tk.Frame):
@@ -1585,7 +1585,7 @@ def config_popup( frames_controller , title="Configurar __" , tipo="CanPalTo" ):
         try:
             if id_cont.get() and name_c.get() and weight.get() :
                 
-                peso = weight.get()
+                peso = float(weight.get())
                 if peso == "NO PESO" or peso <= 0 :
                     raise Exception("No peso")
 

@@ -38,8 +38,8 @@ class Just_Read ():
         self.__isRun = False
         self.__wdec  = True
         try:
-            #self._serial   = serial.Serial(self.__port, self.__speed , timeout=1 )
-            self._serial   = serial.Serial(self.__port, self.__speed  )
+            self._serial   = serial.Serial(self.__port, self.__speed , timeout=5 )
+            #self._serial   = serial.Serial(self.__port, self.__speed  )
             self.__isRun = True
         except Exception as e:
             print ("Error {}".format(e))

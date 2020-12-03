@@ -27,7 +27,7 @@ IMG_SIZE = (640,480)
 pygame.camera.init()
 cam_list = pygame.camera.list_cameras()
 CAMARA = pygame.camera.Camera(cam_list[0],IMG_SIZE)
-
+print (CAMARA)
 
 def API_verify ():
     print (CONS.bcolors.OKGREEN+"Api Verification"+CONS.bcolors.ENDC)
@@ -78,6 +78,8 @@ def getImage():
     except Exception as e : 
         print (CONS.bcolors.FAIL+"Error Capturando Imagen")
         print ("{}".format(e) + CONS.bcolors.ENDC)
+        lista_cam = pygame.camera.list_cameras()
+        CAMARA = pygame.camera.Camera(lista_cam[0],IMG_SIZE)
         return False
 
 def __sendImage(token, image):
