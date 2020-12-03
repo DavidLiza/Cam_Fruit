@@ -57,26 +57,14 @@ State_config     = False
 State_connection = False
 screen_height    = 0
 screen_width     = 0
-peso_cont        = 0
 
 canas_exists     = False
 estibas_exists   = False
 
+proceso_terminado= False
+peso_final       = 0
 # Objeto de comunicacion Serial 
 lector_serial = SER.Just_Read()
-
-"""
-State_Configuration = Value('i',-1)
-State_Changed       = Value('b',False)
-dead                = Value('b',False)
-screen_dead         = Value('b',False)
-
-sudo apt install matchbox-keyboard
-matchbox-keyboard
-
-
-"""
-#stop_for_sc     = threading.Lock()
 
 # Definicion de interrupciones para finalizr el programa 
 def keyboardInterruptHandler(signal, frame):
@@ -230,6 +218,8 @@ class GUI(tk.Tk):
 
         style.configure("Tittle.TLabel" , background="white" , font=Title_font , foreground="#F8AC18" )
         style.configure("SubTittle.TLabel" , background="white" , font=Subtitle_font , foreground="#F8AC18" )
+        style.configure("Subtext.TLabel" , background="white" , font=Pop_Up_Font_R , foreground="#F8AC18" )
+        style.configure("Subtext_black.TLabel" , background="white" , font=Button_font , foreground="black" )
         style.configure("BlackSubTittle.TLabel" , background="white" , font=Subtitle_font , foreground="black" )
         style.configure("RedSubTittle.TLabel"   , background="white" , font=Subtitle_font , foreground="red" )
         style.configure("GreenSubTittle.TLabel" , background="white" , font=Subtitle_font , foreground="green" )
@@ -501,6 +491,8 @@ class Add_WIFI(tk.Frame):
             __wpa_config = True
             #os.system('sudo ip link set wlan0 down')
             #os.system('sudo ip link set wlan0 up')
+
+            #os.system('sudo ifconfig wlan0 down')
             #os.system('sudo ifconfig wlan0 up')
             #rfkill list
 
@@ -1142,10 +1134,6 @@ class Weigh_Initial(tk.Frame):
         self.palets_sel.place(relx=0.5 , rely=0.7)
 
 
-        self.__entry_lec = tk.Entry(self ,font="Aharoni 20" )
-        self.__entry_lec.insert(0," ")
-        self.__entry_lec.place(height= 60, width= 400 , relx=0.55 , rely=0.055)
-
         # -- Entryes Cantidad --
         self.__entry_can = tk.Entry(self ,font="Aharoni 20" )
         self.__entry_can.insert(0," ")
@@ -1226,13 +1214,11 @@ class Weigh_Initial(tk.Frame):
         self.palets_sel.configure(text="Select: {}".format(self.variable_pal.get()))
 
     def check_data(self):
-        global peso_cont
         if self.__counter_can > 0 and self.__counter_pal > 0 :
             peso_cont = self.__counter_pal*(1) + self.__counter_can*(1)
             print (peso_cont)
             self.__controller.show_frame(Weigh_Result)
         else:
-            popupmsg(title="ERROR" , msg = "Informacion insuficiente")
             print (CONS.bcolors.FAIL+ "No enough contenmedores" + CONS.bcolors.ENDC)
 
 
@@ -1285,9 +1271,6 @@ class Weigh_Initial(tk.Frame):
     def update_frame(self):
 
         try:
-            self.__counter_pal= 0
-            self.__counter_can= 0 
-
             self.__entry_can.config(state='normal')
             self.__entry_can.delete(0,tk.END)
             self.__entry_can.config(state='disabled')
@@ -1366,29 +1349,32 @@ class Weigh_Result(tk.Frame):
         self.label_code = tk.Label(self, image = image_home, borderwidth=0)
         self.label_code.place(relx= 0.34 , rely= 0.41)
         self.label_code.image = image_home
+
+    def __get_weights(self):
         
+        
+        return 123
 
     def __final_cam (self):
-        
-        global peso_cont
-        imagen_tomada = API.getImage()
-        peso_final = self.__weight - peso_cont
+        with open('cache/limonsin.png', 'rb') as file:
+            image = file.read()
+            image = base64.b64encode(image)  
+            print (image)
 
-        API.request_Frubana(    basekts     = 66 , 
+            API.request_Frubana(basekts     = 66 , 
                                 product     ="product2", 
                                 state       = "state2", 
                                 num_pallets = 67 , 
                                 pallets_id  = "palet2",
-                                abs_weight  = self.__weight ,
-                                final_weight= peso_final , 
-                                image=imagen_tomada)
+                                abs_weight  = 42 ,
+                                final_weight= 36 , 
+                                image=image)
 
 
     def update_frame(self):
-        global lector_serial
-
         print ("Actualizacion del frame Weight Result  ")
-        self.__weight = lector_serial.rec()
+        
+        self.__weight = self.__get_weights()
         if self.__weight :
             self.__final_cam()
             try:
@@ -1422,7 +1408,7 @@ class Weigh_Result(tk.Frame):
             self.label_error.place(relx=0.445 , rely=0.4)
 
             self.label_error = ttk.Label(self, text="Retire elementos ajenos al proceso de pesado ", style="BlackSubTittle.TLabel")
-            self.label_error.place(relx=0.3 , rely=0.45)
+            self.label_error.place(relx=0.2 , rely=0.45)
 
 
 

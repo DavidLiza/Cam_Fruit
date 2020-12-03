@@ -32,7 +32,7 @@ PINOUT MODULE
 
 class Just_Read ():
 
-    def __init__(self,speed = 9600 , port = 'ttyS0' ):
+    def __init__(self,speed = 9600 , port ='ttyS0' ): # ttyS0 ttyAMA0
         self.__speed = speed
         self.__port  = '/dev/'+ port
         self.__isRun = False
@@ -63,14 +63,6 @@ class Just_Read ():
     def __del__(self):
         self.__isRun = False
 
-    def ver_serial(self):
-        if self._data != None :
-            self._did_read = False
-        
-        #else:
-        #   self._did_read = DEC.NOT_PROT
-        pass
-
     def rec(self):
         """
         This function enter a While loop until some data is read.
@@ -78,6 +70,9 @@ class Just_Read ():
                  or the Data in a Dict if the protocol is acomplished
         """
         print (CONS.bcolors.HEADER+"Lectura Serial"+CONS.bcolors.ENDC)
+
+        if not self.__isRun : 
+            return False
 
         self._serial.reset_input_buffer()
         self._serial.reset_output_buffer()
@@ -88,35 +83,21 @@ class Just_Read ():
         #try:
         while self.__isRun:
                 self._data=self._serial.readline()
-                print (CONS.bcolors.OKBLUE+"Bytes: {}     Decoded:  {}".format(self._data,self._data.decode())+CONS.bcolors.ENDC)
-                
-                """
-                if self._data:
-                    while (not self._did_read ) and (self._did_read != DEC.NOT_PROT) :
-                        self.ver_serial()
-                        #self._did_read = self._serial_protocol.read_Qr(self._data[:-2])
-                        time.sleep(0.1)
-                        self._data = self._data + self._serial.read(self._serial.in_waiting)
-
-                    self._serial.reset_input_buffer()
-                    self._serial.reset_output_buffer()
-
-                    if self._did_read:
-                        print (CONS.bcolors.OKGREEN+"--Serial Succesfully readed--")
-                        print ("{}".format(self._data)+CONS.bcolors.ENDC)
-                        
-                        if self._data < 0 :
-                            return False
-                        else :
-                            return self._data
-
-                    elif self._did_read == DEC.NOT_PROT :
-                        print (" NONE Serial Prot")
+                try:
+                    self._data = float(self._data.decode())
+                    print (CONS.bcolors.OKBLUE+"Data: {}  ".format(self._data)+CONS.bcolors.ENDC)
+                    if self._data:
+                        self._serial.reset_input_buffer()
+                        self._serial.reset_output_buffer()
+                        return False if self._data < 0 else self._data
+                    else :
                         return False
-                
-                else :
-                    return 0
-                """
+
+                except Exception as e:
+                    print (CONS.bcolors.FAIL+"Serial Exception"+CONS.bcolors.ENDC)
+                    print (e)
+                    return False
+
 
         """
         except Exception as e:
@@ -193,8 +174,9 @@ if __name__ == '__main__':
    
     # Test Just reading serial Port
     Serial_A = Just_Read()
-    while True:
-        leido = Serial_A.rec()
-        print (leido)
+    cont = True
+    while cont:
+        cont = Serial_A.rec()
+        print (cont)
 
 #https://pyserial.readthedocs.io/en/latest/pyserial_api.html

@@ -70,8 +70,7 @@ def getImage():
         buffer = BytesIO()
         img.save(buffer,'png')
         
-        
-        pygame.image.save(image_normal,'cache/cheese/101.png')
+        #pygame.image.save(image_normal,'cache/cheese/101.png')
         CAMARA.stop()
 
         return buffer.getvalue()
@@ -79,6 +78,7 @@ def getImage():
     except Exception as e : 
         print (CONS.bcolors.FAIL+"Error Capturando Imagen")
         print ("{}".format(e) + CONS.bcolors.ENDC)
+        return False
 
 def __sendImage(token, image):
     headers = {'content-type': 'image/png' }
