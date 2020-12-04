@@ -25,6 +25,9 @@ import py_compile                           #To enable wich file must be compile
 import threading                            #To create threads
 import signal                               #Used to enable the key interrupt.
 import base64
+import pygame
+import pygame.camera
+from array import array
 
 import barcode
 import urllib.request   as url
@@ -254,8 +257,12 @@ class GUI(tk.Tk):
         menubar = tk.Menu(container)
         menubar.config(font=Text_font)
         
+
+
         menubar.add_command(label="\u0020", activebackground=menubar.cget("background"))
         filemenu = tk.Menu(menubar, tearoff =0 )
+        filemenu.add_separator()
+        filemenu.add_command(label="Test Final",          font=Text_font,  command= lambda: self.test_final() )
         filemenu.add_separator()
         filemenu.add_command(label="Test Camara",          font=Text_font,  command= lambda: test_camara() )
         filemenu.add_separator()
@@ -287,6 +294,15 @@ class GUI(tk.Tk):
         menubar.add_cascade(label="Conexiónes", menu=exchangeChoice)
 
         tk.Tk.config(self, menu=menubar)
+
+    def test_final(self):
+        global proceso_terminado
+        global peso_final
+        proceso_terminado = True
+        peso_final = 1231.8
+        self.show_frame(Weigh_Result)
+
+
 
     def show_frame(self, cont):
         frame = self.__frames[cont]
@@ -1236,9 +1252,14 @@ class Weigh_Initial(tk.Frame):
         self.palets_sel['text']         = self.__pal_sel 
         self.palets_sel_peso['text']    = self.__palets[index_value][2]
     
+    # Hace falta mandar un thread con un popup que sea de calculo
     def check_data(self):
         global lector_serial
+        global proceso_terminado
+        global peso_final
         
+        proceso_terminado = False
+
         self.__product = self.__entry_product.get()
 
         if self.__counter_can <= 0 or self.__counter_pal <= 0 :
@@ -1275,6 +1296,8 @@ class Weigh_Initial(tk.Frame):
             popupmsg(title="Error Peso",msg="Fraude en Peso")
             return  
 
+        peso_final = float(self.__peso_final)
+
         api_result = self.__final_cam()
         if not api_result:
             popupmsg(title="Error API",msg="Error en API")
@@ -1282,6 +1305,7 @@ class Weigh_Initial(tk.Frame):
         elif api_result == -1 :
             popupmsg(title="Error Camera",msg="Camara desconectada")
     
+        proceso_terminado = True
         self.__controller.show_frame(Weigh_Result)
 
     def __final_cam (self):  
@@ -1431,24 +1455,30 @@ class Weigh_Result(tk.Frame):
     def __gen_barcode(self):
         
         # Make sure to pass the number as string 
-        number = '5901234123457'
+        global peso_final
+        number_int = str(int(peso_final))
+
+        if len(number_int) < 13 : 
+            number = number_int.zfill(13)
+        elif  len(number_int) > 13 : 
+            number = number_int[:13]
+        elif  len(number_int) == 13 : 
+            number = number_int
 
         rv = BytesIO()
-        my_code  = barcode.EAN13(number , writer=barcode.writer.ImageWriter()).write(rv)
-        
+        print (number)
         my_code2 = barcode.EAN13(number , writer=barcode.writer.ImageWriter())
         my_code2.save("new_code")
         
-
         # -- Conversion a Binario -- #
-        # image_normal = CAMARA.get_image()
-        # data = pygame.image.tostring(image_normal, 'RGBA')
-        # img = Image.frombytes('RGBA',IMG_SIZE, data)
         # buffer = BytesIO()
-        # img.save(buffer,'png')
+        # my_code2.save(buffer)
+        # print (type(buffer))
+        # print (buffer)
 
-
+        #image_home = open("new_code", 'rb').read()
         image_home = Image.open('new_code.png')
+        #image_home = Image.open(buffer)
         width, height = image_home.size
         print ("Size of image {} {} ".format(width,height))
         image_home = image_home.resize((600,360), Image.ANTIALIAS)
@@ -1473,10 +1503,10 @@ class Weigh_Result(tk.Frame):
             self.labeltitle_res.place(relx=0.4 , rely=0.25)
 
             self.label_peso_total = ttk.Label(self, text="Peso Final del producto:", style="BlackSubTittle.TLabel")
-            self.label_peso_total.place(relx=0.35 , rely=0.3)
+            self.label_peso_total.place(relx=0.37 , rely=0.3)
 
             self.label_peso_total_val = ttk.Label(self, text="{} Kg".format(peso_final), style="BlackSubTittle.TLabel")
-            self.label_peso_total_val.place(relx=0.46 , rely=0.35)
+            self.label_peso_total_val.place(relx=0.4 , rely=0.35)
             self.__pinted = True if self.__gen_barcode() else False
                  
 
